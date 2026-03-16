@@ -1,0 +1,35 @@
+We are building a web GANNT planning tool for our home renovation, to organize schedule, relative dependencies between chunks of the project (and subcomponents of each chunk), and to show ownership of chunks of the process (ie which contractor/specialist will do which parts).
+
+
+## Architecture:
+* Web accessible, for easy sharing of a read-only view of the GANNT chart 
+** Edits should require a basic account login (brittle passcode only, no durable account management)
+* No linking/integration required with external productivity tools (calendars/jira/etc)
+* Architecture:
+** Hosted on Vercel (I already have an account and manage deployments there)
+** Files rev controlled on Git (github.com/lgillis7/)
+** Databases, if required, through Supabase
+
+
+## Capabilities:
+* User can select whether weekends are included or not when calculating end dates for an item, or just business days
+* User can view in list + calendar view or list + GANNT chart view
+* User can create/edit/delete a set of projects. Each project has a gannt chart and all the below chunks (ie project items live within one project and not another. Owners live within a project, do not transfer between)
+* User can create/edit/delete a set of item owners
+** Each owner should have a name, an optional contact info field, and a color
+* User can Create, edit, and delete project items. 
+** This should enable tiers (like a bulleted list) like Bathroom reno -> plumbing roughing -> drain install.
+** Each item should have a desired start date, a required start date, a duration (days, floating point), an end date (=required start date  +duration), an owner, a set of 'gated by' dependencies (upstream), and a set of 'gates' dependencies (downstream), and a completion %
+*** The owner of a project item determines that items color
+*** The desired start date and duration should both be editable, with a calendar popup for selecting the start date. 
+*** Dependencies should be editable by inputting the ID/line number of other project items - we want this to be easy and intuitive
+*** Desirement not requirement - also enable drag and drop dependency creation (from -> to) on the gannt chart/calendar tiles?
+*** The required start date is calculated based on the end dates of any upstream dependencies. If no dependencies are set, it deemphasizes and defaults to the desired start date.
+*** The desired start state should default to TODAY() unless edited
+** There should be no limit to the number of tiers for project items. In the listing, use bolding, italics, and font size to indicate tier status.
+* User can view a progress plot 
+** x axis: time from start date/now (whichever is earlier) to final completion date in project.
+** y axis: days of work completed
+** Plot items: 
+*** curve of desired progress - integrates days of work completed using each project items desired start date and duration to show the ideal progress curve
+*** Glowing point of current state (current date and sum of all project item % complete * duration)
