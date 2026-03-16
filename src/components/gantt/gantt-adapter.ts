@@ -15,7 +15,7 @@ export interface SvarTask {
   progress: number; // 0-100
   parent: TID; // string ID or 0 for root-level
   type: 'task' | 'summary';
-  open: boolean;
+  open?: boolean;
   /** Custom field: owner color for bar styling */
   $color: string;
 }
@@ -42,7 +42,9 @@ export function toSvarTasks(
     tasks.filter((t) => t.parentTaskId).map((t) => t.parentTaskId)
   );
 
-  return tasks.map((t) => ({
+  return tasks.map((t) => {
+    const isSummary = parentIds.has(t.id);
+    return {
     id: t.id,
     text: t.title,
     start: parseISO(t.effectiveStartDate),
@@ -50,12 +52,15 @@ export function toSvarTasks(
     duration: t.durationDays,
     progress: t.completionPct,
     parent: t.parentTaskId ?? 0,
-    type: parentIds.has(t.id) ? ('summary' as const) : ('task' as const),
-    open: true,
+    type: isSummary ? ('summary' as const) : ('task' as const),
+    // Only set open on summary tasks — SVAR's toArray recurses into
+    // a.data when open===true, but leaf nodes have data:null which crashes.
+    open: isSummary ? true : undefined,
     $color: t.ownerId
       ? (ownerMap.get(t.ownerId)?.color ?? DEFAULT_NEUTRAL_COLOR)
       : DEFAULT_NEUTRAL_COLOR,
-  }));
+  };
+  });
 }
 
 /**
@@ -69,4 +74,31 @@ export function toSvarLinks(deps: Dependency[]): SvarLink[] {
     target: d.downstreamTaskId,
     type: 'e2s' as const,
   }));
+}
+
+/**
+ * Sort tasks in tree order: parent → children (recursively), siblings by sortOrder.
+ * Matches SVAR's internal tree display order for scroll sync alignment.
+ */
+export function treeSortTasks<
+  T extends { id: string; parentTaskId: string | null; sortOrder: number }
+>(tasks: T[]): T[] {
+  const byParent = new Map<string | null, T[]>();
+  for (const t of tasks) {
+    const key = t.parentTaskId;
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key)!.push(t);
+  }
+  for (const siblings of byParent.values()) {
+    siblings.sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+  const result: T[] = [];
+  function visit(parentId: string | null) {
+    for (const task of byParent.get(parentId) ?? []) {
+      result.push(task);
+      visit(task.id);
+    }
+  }
+  visit(null);
+  return result;
 }

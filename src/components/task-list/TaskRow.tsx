@@ -1,18 +1,122 @@
 'use client';
 
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { format, parseISO } from 'date-fns';
+import { Trash2, Plus, CalendarIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { tierStyles, tierIndent, formatDate } from '@/lib/utils/formatting';
-import type { ComputedTask, Owner, Dependency } from '@/types/scheduling';
+import { detectCycle } from '@/lib/scheduling/dependency-graph';
+import type { ComputedTask, RawTask, Owner, Dependency } from '@/types/scheduling';
 
 interface TaskRowProps {
   task: ComputedTask;
   owners: Owner[];
   dependencies: Dependency[];
   allTasks: ComputedTask[];
-  onEdit: (task: ComputedTask) => void;
+  onUpdate: (
+    taskId: string,
+    updates: Record<string, unknown>,
+    depChanges?: {
+      add: { upstreamTaskId: string }[];
+      remove: string[];
+    }
+  ) => Promise<void>;
   onDelete: (taskId: string) => void;
   onAddSubtask: (parentTask: ComputedTask) => void;
+  /** Fixed row height in pixels for Gantt scroll sync alignment */
+  rowHeight?: number;
+}
+
+// Inline editable text/number cell
+function EditableCell({
+  value,
+  onSave,
+  type = 'text',
+  className = '',
+  inputClassName = '',
+  suffix = '',
+  min,
+  max,
+  step,
+}: {
+  value: string;
+  onSave: (value: string) => void;
+  type?: 'text' | 'number';
+  className?: string;
+  inputClassName?: string;
+  suffix?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  // Sync external value changes
+  useEffect(() => {
+    if (!editing) setDraft(value);
+  }, [value, editing]);
+
+  const commit = () => {
+    setEditing(false);
+    if (draft !== value) {
+      onSave(draft);
+    }
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        type={type}
+        value={draft}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') {
+            setDraft(value);
+            setEditing(false);
+          }
+        }}
+        className={`w-full bg-transparent border-b border-primary outline-none ${inputClassName}`}
+      />
+    );
+  }
+
+  return (
+    <span
+      onClick={() => setEditing(true)}
+      className={`cursor-pointer hover:bg-muted/80 rounded px-0.5 -mx-0.5 ${className}`}
+    >
+      {value}{suffix}
+    </span>
+  );
 }
 
 export function TaskRow({
@@ -20,9 +124,10 @@ export function TaskRow({
   owners,
   dependencies,
   allTasks,
-  onEdit,
+  onUpdate,
   onDelete,
   onAddSubtask,
+  rowHeight,
 }: TaskRowProps) {
   const owner = task.ownerId
     ? owners.find((o) => o.id === task.ownerId)
@@ -40,8 +145,150 @@ export function TaskRow({
     .filter((n): n is number => n !== null)
     .sort((a, b) => a - b);
 
+  // --- Inline save handlers ---
+
+  const saveTitle = useCallback(
+    (val: string) => {
+      const trimmed = val.trim();
+      if (!trimmed) {
+        toast.error('Title cannot be empty');
+        return;
+      }
+      onUpdate(task.id, { title: trimmed });
+    },
+    [task.id, onUpdate]
+  );
+
+  const saveDuration = useCallback(
+    (val: string) => {
+      const dur = parseFloat(val);
+      if (isNaN(dur) || dur < 0.1) {
+        toast.error('Duration must be at least 0.1');
+        return;
+      }
+      onUpdate(task.id, { durationDays: dur });
+    },
+    [task.id, onUpdate]
+  );
+
+  const saveCompletion = useCallback(
+    (val: string) => {
+      const pct = parseFloat(val);
+      if (isNaN(pct) || pct < 0 || pct > 100) {
+        toast.error('Must be 0-100');
+        return;
+      }
+      onUpdate(task.id, { completionPct: pct });
+    },
+    [task.id, onUpdate]
+  );
+
+  const saveDate = useCallback(
+    (date: Date | undefined) => {
+      if (!date) return;
+      onUpdate(task.id, { desiredStartDate: format(date, 'yyyy-MM-dd') });
+    },
+    [task.id, onUpdate]
+  );
+
+  const saveOwner = useCallback(
+    (val: string | null) => {
+      onUpdate(task.id, {
+        ownerId: !val || val === '__unassigned__' ? null : val,
+      });
+    },
+    [task.id, onUpdate]
+  );
+
+  const saveDeps = useCallback(
+    (val: string) => {
+      // Resolve line numbers to task IDs
+      const newUpstreamIds: string[] = [];
+      if (val.trim()) {
+        const lineNums = val.split(',').map((s) => s.trim()).filter(Boolean);
+        for (const ln of lineNums) {
+          const num = parseInt(ln, 10);
+          if (isNaN(num)) {
+            toast.error(`Invalid line number: "${ln}"`);
+            return;
+          }
+          const upTask = allTasks.find((t) => t.sortOrder === num);
+          if (!upTask) {
+            toast.error(`No task with line number ${num}`);
+            return;
+          }
+          if (upTask.id === task.id) {
+            toast.error('A task cannot depend on itself');
+            return;
+          }
+          newUpstreamIds.push(upTask.id);
+        }
+      }
+
+      // Check for cycles
+      if (newUpstreamIds.length > 0) {
+        const newUpstreamSet = new Set(newUpstreamIds);
+        const proposedDeps: Dependency[] = [
+          ...dependencies.filter(
+            (d) =>
+              d.downstreamTaskId !== task.id ||
+              newUpstreamSet.has(d.upstreamTaskId)
+          ),
+          ...newUpstreamIds
+            .filter((id) => !upstreamDeps.some((d) => d.upstreamTaskId === id))
+            .map((id) => ({
+              id: `temp-${id}`,
+              projectId: task.projectId,
+              upstreamTaskId: id,
+              downstreamTaskId: task.id,
+              dependencyType: 'finish-to-start' as const,
+            })),
+        ];
+        const rawTasks: RawTask[] = allTasks.map((t) => ({
+          id: t.id,
+          projectId: t.projectId,
+          parentTaskId: t.parentTaskId,
+          ownerId: t.ownerId,
+          title: t.title,
+          tierDepth: t.tierDepth,
+          sortOrder: t.sortOrder,
+          desiredStartDate: t.desiredStartDate,
+          durationDays: t.durationDays,
+          completionPct: t.completionPct,
+          notes: t.notes,
+        }));
+        const cycleResult = detectCycle(rawTasks, proposedDeps);
+        if (cycleResult !== null) {
+          toast.error(`Circular dependency: ${cycleResult.join(' -> ')}`);
+          return;
+        }
+      }
+
+      // Calculate dep changes
+      const currentUpstreamIds = new Set(
+        upstreamDeps.map((d) => d.upstreamTaskId)
+      );
+      const newUpstreamSet = new Set(newUpstreamIds);
+
+      const depsToAdd = newUpstreamIds
+        .filter((id) => !currentUpstreamIds.has(id))
+        .map((id) => ({ upstreamTaskId: id }));
+      const depsToRemove = upstreamDeps
+        .filter((d) => !newUpstreamSet.has(d.upstreamTaskId))
+        .map((d) => d.id);
+
+      if (depsToAdd.length > 0 || depsToRemove.length > 0) {
+        onUpdate(task.id, {}, { add: depsToAdd, remove: depsToRemove });
+      }
+    },
+    [task, allTasks, dependencies, upstreamDeps, onUpdate]
+  );
+
   return (
-    <tr className="border-b border-border hover:bg-muted/50">
+    <tr
+      className="border-b border-border hover:bg-muted/50"
+      style={rowHeight ? { height: rowHeight, maxHeight: rowHeight, overflow: 'hidden' } : undefined}
+    >
       {/* Line # */}
       <td className="px-2 py-1.5 text-center text-xs text-muted-foreground tabular-nums">
         {task.sortOrder}
@@ -49,67 +296,136 @@ export function TaskRow({
 
       {/* Title with tier formatting */}
       <td className={`px-2 py-1.5 ${tierIndent(task.tierDepth)}`}>
-        <span className={tierStyles(task.tierDepth)}>{task.title}</span>
+        <EditableCell
+          value={task.title}
+          onSave={saveTitle}
+          className={tierStyles(task.tierDepth)}
+        />
       </td>
 
-      {/* Owner */}
+      {/* Owner - inline select */}
       <td className="px-2 py-1.5 whitespace-nowrap">
-        {owner ? (
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              className="inline-block size-2.5 rounded-full shrink-0"
-              style={{ backgroundColor: owner.color }}
-            />
-            <span className="text-sm">{owner.name}</span>
-          </span>
-        ) : (
-          <span className="text-sm text-muted-foreground">Unassigned</span>
-        )}
+        <Select
+          value={task.ownerId ?? '__unassigned__'}
+          onValueChange={saveOwner}
+        >
+          <SelectTrigger className="h-auto border-none bg-transparent shadow-none p-0 min-w-[100px]">
+            <SelectValue>
+              {owner ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block size-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: owner.color }}
+                  />
+                  <span className="text-sm">{owner.name}</span>
+                </span>
+              ) : (
+                <span className="text-sm text-muted-foreground">
+                  Unassigned
+                </span>
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__unassigned__">Unassigned</SelectItem>
+            {owners.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block size-2.5 rounded-full"
+                    style={{ backgroundColor: o.color }}
+                  />
+                  {o.name}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </td>
 
-      {/* Desired Start */}
+      {/* Desired Start - calendar popover */}
       <td className="px-2 py-1.5 text-sm whitespace-nowrap">
-        {formatDate(task.desiredStartDate)}
+        <Popover>
+          <PopoverTrigger
+            render={
+              <button className="inline-flex items-center gap-1 cursor-pointer hover:bg-muted/80 rounded px-0.5 -mx-0.5" />
+            }
+          >
+            <CalendarIcon className="size-3 text-muted-foreground" />
+            {formatDate(task.desiredStartDate)}
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={parseISO(task.desiredStartDate)}
+              onSelect={saveDate}
+            />
+          </PopoverContent>
+        </Popover>
       </td>
 
       {/* Duration */}
       <td className="px-2 py-1.5 text-sm text-center tabular-nums">
-        {task.durationDays}d
+        <EditableCell
+          value={String(task.durationDays)}
+          onSave={saveDuration}
+          type="number"
+          suffix="d"
+          min={0.1}
+          step={0.5}
+          inputClassName="w-16 text-center"
+        />
       </td>
 
-      {/* Required Start (computed) */}
+      {/* Required Start (computed - read only) */}
       <td className="px-2 py-1.5 text-sm text-muted-foreground whitespace-nowrap">
         {formatDate(task.requiredStartDate)}
       </td>
 
-      {/* End Date (computed) */}
+      {/* End Date (computed - read only) */}
       <td className="px-2 py-1.5 text-sm text-muted-foreground whitespace-nowrap">
         {formatDate(task.endDate)}
       </td>
 
       {/* Completion % */}
       <td className="px-2 py-1.5 text-sm text-center tabular-nums">
-        {task.completionPct}%
+        <EditableCell
+          value={String(task.completionPct)}
+          onSave={saveCompletion}
+          type="number"
+          suffix="%"
+          min={0}
+          max={100}
+          step={5}
+          inputClassName="w-14 text-center"
+        />
       </td>
 
-      {/* Dependencies */}
+      {/* Dependencies - inline editable */}
       <td className="px-2 py-1.5 text-sm text-muted-foreground tabular-nums">
-        {upstreamLineNumbers.length > 0
-          ? upstreamLineNumbers.join(', ')
-          : '-'}
+        <EditableCell
+          value={upstreamLineNumbers.length > 0 ? upstreamLineNumbers.join(', ') : ''}
+          onSave={saveDeps}
+          inputClassName="w-20"
+          className={upstreamLineNumbers.length === 0 ? 'text-muted-foreground' : ''}
+        />
+        {!upstreamLineNumbers.length && (
+          <span
+            className="cursor-pointer hover:bg-muted/80 rounded px-0.5 text-muted-foreground"
+            onClick={(e) => {
+              // Find the EditableCell and trigger click on it
+              const cell = e.currentTarget.previousElementSibling as HTMLElement;
+              if (cell) cell.click();
+            }}
+          >
+            -
+          </span>
+        )}
       </td>
 
       {/* Actions */}
       <td className="px-2 py-1.5">
         <div className="flex items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => onEdit(task)}
-            aria-label={`Edit ${task.title}`}
-          >
-            <Pencil />
-          </Button>
           {task.tierDepth < 3 && (
             <Button
               variant="ghost"

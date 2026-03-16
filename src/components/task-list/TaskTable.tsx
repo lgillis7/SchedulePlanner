@@ -1,7 +1,5 @@
 'use client';
 
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { TaskRow } from './TaskRow';
 import type { ComputedTask, Owner, Dependency } from '@/types/scheduling';
 
@@ -9,26 +7,36 @@ interface TaskTableProps {
   schedule: ComputedTask[];
   owners: Owner[];
   dependencies: Dependency[];
-  onEdit: (task: ComputedTask) => void;
+  onUpdate: (
+    taskId: string,
+    updates: Record<string, unknown>,
+    depChanges?: {
+      add: { upstreamTaskId: string }[];
+      remove: string[];
+    }
+  ) => Promise<void>;
   onDelete: (taskId: string) => void;
   onAddTask: () => void;
   onAddSubtask: (parentTask: ComputedTask) => void;
+  /** Fixed row height in pixels for Gantt scroll sync alignment */
+  rowHeight?: number;
 }
 
 export function TaskTable({
   schedule,
   owners,
   dependencies,
-  onEdit,
+  onUpdate,
   onDelete,
   onAddTask,
   onAddSubtask,
+  rowHeight,
 }: TaskTableProps) {
-  // Sort tasks by sortOrder for display
-  const sortedTasks = [...schedule].sort((a, b) => a.sortOrder - b.sortOrder);
+  // Use caller-provided order (tree-sorted for Gantt alignment)
+  const sortedTasks = schedule;
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-border">
+    <div className="w-full">
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-border bg-muted/50">
@@ -59,7 +67,7 @@ export function TaskTable({
             <th className="px-2 py-2 text-xs font-medium text-muted-foreground">
               Deps
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground w-24">
+            <th className="px-2 py-2 text-xs font-medium text-muted-foreground w-20">
               Actions
             </th>
           </tr>
@@ -72,9 +80,10 @@ export function TaskTable({
               owners={owners}
               dependencies={dependencies}
               allTasks={sortedTasks}
-              onEdit={onEdit}
+              onUpdate={onUpdate}
               onDelete={onDelete}
               onAddSubtask={onAddSubtask}
+              rowHeight={rowHeight}
             />
           ))}
           {sortedTasks.length === 0 && (
@@ -89,12 +98,6 @@ export function TaskTable({
           )}
         </tbody>
       </table>
-      <div className="border-t border-border p-2">
-        <Button variant="outline" size="sm" onClick={onAddTask}>
-          <Plus data-icon="inline-start" />
-          Add Task
-        </Button>
-      </div>
     </div>
   );
 }
