@@ -29,12 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can wire finish-to-start dependencies between tasks by ID, and downstream dates automatically recalculate when upstream dates change
   4. System rejects circular dependencies and tells the user which tasks form the cycle
   5. User can create owners with name, color, and contact info, and assign them to tasks
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Project scaffolding, Supabase schema, TypeScript domain types
+- [ ] 01-02-PLAN.md — Scheduling engine TDD (dependency graph, date calculator, forward pass)
+- [ ] 01-03-PLAN.md — Task/Owner CRUD UI, dependency editing, Supabase persistence
 
 ### Phase 2: Gantt Visualization
 **Goal**: Users can see their renovation schedule as an interactive Gantt chart with colored bars, dependency arrows, and completion indicators
