@@ -1,0 +1,72 @@
+import { parseISO } from 'date-fns';
+import type { ComputedTask, Dependency, Owner } from '@/types/scheduling';
+import type { TID } from '@svar-ui/react-gantt';
+
+/**
+ * SVAR task shape -- defined locally to decouple from SVAR internals.
+ * ITask from SVAR accepts `[key: string]: any` so custom fields are allowed.
+ */
+export interface SvarTask {
+  id: string;
+  text: string;
+  start: Date;
+  end: Date;
+  duration: number;
+  progress: number; // 0-100
+  parent: TID; // string ID or 0 for root-level
+  type: 'task' | 'summary';
+  open: boolean;
+  /** Custom field: owner color for bar styling */
+  $color: string;
+}
+
+export interface SvarLink {
+  id: string;
+  source: string;
+  target: string;
+  type: 'e2s'; // end-to-start = finish-to-start
+}
+
+const DEFAULT_NEUTRAL_COLOR = '#94A3B8'; // Tailwind slate-400
+
+/**
+ * Transform domain ComputedTasks + Owners into SVAR-compatible task objects.
+ * Pure function -- no side effects.
+ */
+export function toSvarTasks(
+  tasks: ComputedTask[],
+  owners: Owner[]
+): SvarTask[] {
+  const ownerMap = new Map(owners.map((o) => [o.id, o]));
+  const parentIds = new Set(
+    tasks.filter((t) => t.parentTaskId).map((t) => t.parentTaskId)
+  );
+
+  return tasks.map((t) => ({
+    id: t.id,
+    text: t.title,
+    start: parseISO(t.effectiveStartDate),
+    end: parseISO(t.endDate),
+    duration: t.durationDays,
+    progress: t.completionPct,
+    parent: t.parentTaskId ?? 0,
+    type: parentIds.has(t.id) ? ('summary' as const) : ('task' as const),
+    open: true,
+    $color: t.ownerId
+      ? (ownerMap.get(t.ownerId)?.color ?? DEFAULT_NEUTRAL_COLOR)
+      : DEFAULT_NEUTRAL_COLOR,
+  }));
+}
+
+/**
+ * Transform domain Dependencies into SVAR-compatible link objects.
+ * Pure function -- no side effects.
+ */
+export function toSvarLinks(deps: Dependency[]): SvarLink[] {
+  return deps.map((d) => ({
+    id: d.id,
+    source: d.upstreamTaskId,
+    target: d.downstreamTaskId,
+    type: 'e2s' as const,
+  }));
+}
