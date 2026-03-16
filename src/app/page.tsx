@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useProject } from '@/hooks/useProject';
 import { useSchedule } from '@/hooks/useSchedule';
@@ -16,8 +16,8 @@ import {
   addDependency,
   removeDependency,
 } from '@/lib/supabase/queries';
-import { TaskTable } from '@/components/task-list/TaskTable';
-import { TaskEditor } from '@/components/task-list/TaskEditor';
+import { GanttView } from '@/components/gantt/GanttView';
+import { toSvarTasks, toSvarLinks } from '@/components/gantt/gantt-adapter';
 import { OwnerManager } from '@/components/owners/OwnerManager';
 import { Button } from '@/components/ui/button';
 import type { ComputedTask } from '@/types/scheduling';
@@ -34,10 +34,58 @@ export default function HomePage() {
     project?.includeWeekends ?? false
   );
 
-  const [editingTask, setEditingTask] = useState<ComputedTask | null>(null);
-  const [editorOpen, setEditorOpen] = useState(false);
-
   const client = createClient();
+
+  // ---------------------------------------------------------------------------
+  // SVAR Gantt data transforms (memoized)
+  // ---------------------------------------------------------------------------
+
+  const svarTasks = useMemo(
+    () => toSvarTasks(schedule, owners),
+    [schedule, owners]
+  );
+  const svarLinks = useMemo(
+    () => toSvarLinks(dependencies),
+    [dependencies]
+  );
+
+  // ---------------------------------------------------------------------------
+  // Gantt link event handlers
+  // ---------------------------------------------------------------------------
+
+  const handleAddLink = useCallback(
+    async (sourceId: string, targetId: string) => {
+      try {
+        await addDependency(client, {
+          projectId: DEFAULT_PROJECT_ID,
+          upstreamTaskId: sourceId,
+          downstreamTaskId: targetId,
+        });
+        await refetch();
+        toast.success('Dependency created');
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : 'Failed to create dependency'
+        );
+      }
+    },
+    [client, refetch]
+  );
+
+  const handleDeleteLink = useCallback(
+    async (linkId: string) => {
+      try {
+        await removeDependency(client, linkId);
+        await refetch();
+        toast.success('Dependency removed');
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : 'Failed to remove dependency'
+        );
+      }
+    },
+    [client, refetch]
+  );
 
   // ---------------------------------------------------------------------------
   // Task handlers
@@ -90,12 +138,7 @@ export default function HomePage() {
     [client, tasks, refetch]
   );
 
-  const handleEditTask = useCallback((task: ComputedTask) => {
-    setEditingTask(task);
-    setEditorOpen(true);
-  }, []);
-
-  const handleSaveTask = useCallback(
+  const handleUpdateTask = useCallback(
     async (
       taskId: string,
       updates: Record<string, unknown>,
@@ -255,6 +298,10 @@ export default function HomePage() {
               Include weekends
             </label>
 
+            <Button variant="outline" size="sm" onClick={handleAddTask}>
+              Add Task
+            </Button>
+
             <OwnerManager
               owners={owners}
               tasks={tasks}
@@ -276,27 +323,15 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Task Table */}
-        <TaskTable
-          schedule={schedule}
-          owners={owners}
-          dependencies={dependencies}
-          onEdit={handleEditTask}
-          onDelete={handleDeleteTask}
-          onAddTask={handleAddTask}
-          onAddSubtask={handleAddSubtask}
-        />
-
-        {/* Task Editor Dialog */}
-        <TaskEditor
-          task={editingTask}
-          allTasks={schedule}
-          owners={owners}
-          dependencies={dependencies}
-          open={editorOpen}
-          onOpenChange={setEditorOpen}
-          onSave={handleSaveTask}
-        />
+        {/* Gantt Chart */}
+        <div style={{ height: 'calc(100vh - 200px)' }}>
+          <GanttView
+            tasks={svarTasks}
+            links={svarLinks}
+            onAddLink={handleAddLink}
+            onDeleteLink={handleDeleteLink}
+          />
+        </div>
       </div>
     </div>
   );
