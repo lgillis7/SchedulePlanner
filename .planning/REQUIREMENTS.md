@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Task Management
 
-- [ ] **TASK-01**: User can create, edit, and delete project items (tasks)
-- [ ] **TASK-02**: User can organize tasks in a hierarchy up to 3-4 levels deep (e.g., Bathroom > Plumbing > Roughing > Drain install)
-- [ ] **TASK-03**: Tasks display with visual tier formatting — bold, italics, and font size indicate depth level
-- [ ] **TASK-04**: Each task has a desired start date (defaults to today), editable via calendar popup
-- [ ] **TASK-05**: Each task has a duration in floating-point days
+- [x] **TASK-01**: User can create, edit, and delete project items (tasks)
+- [x] **TASK-02**: User can organize tasks in a hierarchy up to 3-4 levels deep (e.g., Bathroom > Plumbing > Roughing > Drain install)
+- [x] **TASK-03**: Tasks display with visual tier formatting — bold, italics, and font size indicate depth level
+- [x] **TASK-04**: Each task has a desired start date (defaults to today), editable via calendar popup
+- [x] **TASK-05**: Each task has a duration in floating-point days
 - [x] **TASK-06**: Each task has a required start date, calculated from upstream dependency end dates; falls back to desired start date when no dependencies
 - [x] **TASK-07**: Each task has an end date calculated as required start date + duration
 - [x] **TASK-08**: User can toggle whether weekends are included in date calculations (business days vs all days)
@@ -21,16 +21,16 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Dependencies
 
 - [x] **DEP-01**: User can set finish-to-start dependencies between tasks
-- [ ] **DEP-02**: User can edit dependencies by inputting task ID/line number of upstream items
+- [x] **DEP-02**: User can edit dependencies by inputting task ID/line number of upstream items
 - [x] **DEP-03**: Downstream task required start dates automatically recalculate when upstream task dates change
 - [x] **DEP-04**: System detects and prevents circular dependencies
 - [ ] **DEP-05**: User can create dependencies via drag-and-drop on the Gantt chart (from bar to bar)
 
 ### Owners
 
-- [ ] **OWN-01**: User can create, edit, and delete item owners within a project
-- [ ] **OWN-02**: Each owner has a name, optional contact info field, and a color
-- [ ] **OWN-03**: User can assign an owner to any task
+- [x] **OWN-01**: User can create, edit, and delete item owners within a project
+- [x] **OWN-02**: Each owner has a name, optional contact info field, and a color
+- [x] **OWN-03**: User can assign an owner to any task
 - [ ] **OWN-04**: Task color on the Gantt chart is determined by its owner's color
 
 ### Visualization
@@ -42,7 +42,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Progress Tracking
 
-- [ ] **PROG-01**: User can set completion percentage (0-100%) for each task
+- [x] **PROG-01**: User can set completion percentage (0-100%) for each task
 - [ ] **PROG-02**: User can view a progress plot with time on x-axis and work-days-completed on y-axis
 - [ ] **PROG-03**: Progress plot displays a desired progress curve based on each task's desired start date and duration
 - [ ] **PROG-04**: Progress plot displays a glowing data point for current state (today's date, sum of all task % complete * duration)
@@ -103,28 +103,28 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TASK-01 | Phase 1 | Pending |
-| TASK-02 | Phase 1 | Pending |
-| TASK-03 | Phase 1 | Pending |
-| TASK-04 | Phase 1 | Pending |
-| TASK-05 | Phase 1 | Pending |
+| TASK-01 | Phase 1 | Complete |
+| TASK-02 | Phase 1 | Complete |
+| TASK-03 | Phase 1 | Complete |
+| TASK-04 | Phase 1 | Complete |
+| TASK-05 | Phase 1 | Complete |
 | TASK-06 | Phase 1 | Complete |
 | TASK-07 | Phase 1 | Complete |
 | TASK-08 | Phase 1 | Complete |
 | DEP-01 | Phase 1 | Complete |
-| DEP-02 | Phase 1 | Pending |
+| DEP-02 | Phase 1 | Complete |
 | DEP-03 | Phase 1 | Complete |
 | DEP-04 | Phase 1 | Complete |
 | DEP-05 | Phase 2 | Pending |
-| OWN-01 | Phase 1 | Pending |
-| OWN-02 | Phase 1 | Pending |
-| OWN-03 | Phase 1 | Pending |
+| OWN-01 | Phase 1 | Complete |
+| OWN-02 | Phase 1 | Complete |
+| OWN-03 | Phase 1 | Complete |
 | OWN-04 | Phase 2 | Pending |
 | VIS-01 | Phase 2 | Pending |
 | VIS-02 | Phase 2 | Pending |
 | VIS-03 | Phase 2 | Pending |
 | VIS-04 | Phase 2 | Pending |
-| PROG-01 | Phase 1 | Pending |
+| PROG-01 | Phase 1 | Complete |
 | PROG-02 | Phase 4 | Pending |
 | PROG-03 | Phase 4 | Pending |
 | PROG-04 | Phase 4 | Pending |
