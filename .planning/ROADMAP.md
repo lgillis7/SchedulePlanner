@@ -45,11 +45,11 @@ Plans:
   2. Each task displays as a horizontal bar colored by its owner's assigned color, with a fill indicator showing completion percentage
   3. Dependency lines visually connect upstream task bars to downstream task bars
   4. User can create dependencies by dragging from one Gantt bar to another
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — Install SVAR React Gantt, adapter layer, GanttView component, split-pane page layout
+- [ ] 02-02-PLAN.md — Drag-and-drop dependency creation with cycle detection and visual verification
 
 ### Phase 3: Auth + Sharing
 **Goal**: Homeowner and wife can edit behind a passcode while contractors view the full schedule via a shared link without any login
