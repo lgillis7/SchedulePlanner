@@ -57,9 +57,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Application is hosted on Vercel
-- [ ] **INFRA-02**: Data is persisted in Supabase database
-- [ ] **INFRA-03**: Source code is stored on GitHub (github.com/lgillis7/SchedulePlanner)
+- [x] **INFRA-01**: Application is hosted on Vercel
+- [x] **INFRA-02**: Data is persisted in Supabase database
+- [x] **INFRA-03**: Source code is stored on GitHub (github.com/lgillis7/SchedulePlanner)
 
 ## v2 Requirements
 
@@ -133,9 +133,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |
 | AUTH-03 | Phase 3 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
+| INFRA-03 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 33 total
