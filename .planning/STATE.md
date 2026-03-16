@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 ## Current Position
 
 Phase: 1 of 4 (Data Model + Scheduling Engine)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-15 -- Completed 01-01-PLAN.md
+Last activity: 2026-03-15 -- Completed 01-02-PLAN.md
 
-Progress: [███░░░░░░░] 33%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 8min
-- Total execution time: 0.13 hours
+- Total plans completed: 2
+- Average duration: 5.5min
+- Total execution time: 0.18 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 1 | 8min | 8min |
+| 01 | 2 | 11min | 5.5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (8min)
-- Trend: baseline
+- Last 5 plans: 01-01 (8min), 01-02 (3min)
+- Trend: accelerating
 
 *Updated after each plan completion*
 
@@ -48,6 +48,10 @@ Recent decisions affecting current work:
 - [01-01]: Used src/ directory structure with @/* -> ./src/* path alias
 - [01-01]: Placeholder Database type for Supabase client generics (generate from schema when Supabase runs)
 - [01-01]: Domain types use camelCase; DB layer will handle snake_case mapping
+- [01-02]: Kahn's BFS for topological sort (iterative, no stack overflow on deep graphs)
+- [01-02]: Shared kahnSort helper for DRY between topologicalSort and detectCycle
+- [01-02]: date-fns parseISO/format for timezone-safe date arithmetic
+- [01-02]: Fractional durations ceiled to whole days (Math.ceil convention)
 
 ### Pending Todos
 
@@ -61,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-15
-Stopped at: Completed 01-01-PLAN.md
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None

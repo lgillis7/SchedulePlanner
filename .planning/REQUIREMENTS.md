@@ -14,16 +14,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **TASK-03**: Tasks display with visual tier formatting — bold, italics, and font size indicate depth level
 - [ ] **TASK-04**: Each task has a desired start date (defaults to today), editable via calendar popup
 - [ ] **TASK-05**: Each task has a duration in floating-point days
-- [ ] **TASK-06**: Each task has a required start date, calculated from upstream dependency end dates; falls back to desired start date when no dependencies
-- [ ] **TASK-07**: Each task has an end date calculated as required start date + duration
-- [ ] **TASK-08**: User can toggle whether weekends are included in date calculations (business days vs all days)
+- [x] **TASK-06**: Each task has a required start date, calculated from upstream dependency end dates; falls back to desired start date when no dependencies
+- [x] **TASK-07**: Each task has an end date calculated as required start date + duration
+- [x] **TASK-08**: User can toggle whether weekends are included in date calculations (business days vs all days)
 
 ### Dependencies
 
-- [ ] **DEP-01**: User can set finish-to-start dependencies between tasks
+- [x] **DEP-01**: User can set finish-to-start dependencies between tasks
 - [ ] **DEP-02**: User can edit dependencies by inputting task ID/line number of upstream items
-- [ ] **DEP-03**: Downstream task required start dates automatically recalculate when upstream task dates change
-- [ ] **DEP-04**: System detects and prevents circular dependencies
+- [x] **DEP-03**: Downstream task required start dates automatically recalculate when upstream task dates change
+- [x] **DEP-04**: System detects and prevents circular dependencies
 - [ ] **DEP-05**: User can create dependencies via drag-and-drop on the Gantt chart (from bar to bar)
 
 ### Owners
@@ -108,13 +108,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TASK-03 | Phase 1 | Pending |
 | TASK-04 | Phase 1 | Pending |
 | TASK-05 | Phase 1 | Pending |
-| TASK-06 | Phase 1 | Pending |
-| TASK-07 | Phase 1 | Pending |
-| TASK-08 | Phase 1 | Pending |
-| DEP-01 | Phase 1 | Pending |
+| TASK-06 | Phase 1 | Complete |
+| TASK-07 | Phase 1 | Complete |
+| TASK-08 | Phase 1 | Complete |
+| DEP-01 | Phase 1 | Complete |
 | DEP-02 | Phase 1 | Pending |
-| DEP-03 | Phase 1 | Pending |
-| DEP-04 | Phase 1 | Pending |
+| DEP-03 | Phase 1 | Complete |
+| DEP-04 | Phase 1 | Complete |
 | DEP-05 | Phase 2 | Pending |
 | OWN-01 | Phase 1 | Pending |
 | OWN-02 | Phase 1 | Pending |
