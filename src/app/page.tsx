@@ -20,8 +20,9 @@ import { GanttView } from '@/components/gantt/GanttView';
 import { toSvarTasks, toSvarLinks } from '@/components/gantt/gantt-adapter';
 import { OwnerManager } from '@/components/owners/OwnerManager';
 import { Button } from '@/components/ui/button';
-import type { ComputedTask } from '@/types/scheduling';
+import type { ComputedTask, Dependency } from '@/types/scheduling';
 import { CyclicDependencyError } from '@/types/scheduling';
+import { detectCycle } from '@/lib/scheduling/dependency-graph';
 
 const DEFAULT_PROJECT_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -55,6 +56,23 @@ export default function HomePage() {
 
   const handleAddLink = useCallback(
     async (sourceId: string, targetId: string) => {
+      // Pre-flight cycle check before hitting the database
+      const proposedDeps: Dependency[] = [
+        ...dependencies,
+        {
+          id: 'temp',
+          projectId: DEFAULT_PROJECT_ID,
+          upstreamTaskId: sourceId,
+          downstreamTaskId: targetId,
+          dependencyType: 'finish-to-start' as const,
+        },
+      ];
+      const cycle = detectCycle(tasks, proposedDeps);
+      if (cycle !== null) {
+        toast.error(`Circular dependency: ${cycle.join(' \u2192 ')}`);
+        return;
+      }
+
       try {
         await addDependency(client, {
           projectId: DEFAULT_PROJECT_ID,
@@ -69,7 +87,7 @@ export default function HomePage() {
         );
       }
     },
-    [client, refetch]
+    [client, tasks, dependencies, refetch]
   );
 
   const handleDeleteLink = useCallback(
