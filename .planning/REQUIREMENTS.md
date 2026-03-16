@@ -24,7 +24,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DEP-02**: User can edit dependencies by inputting task ID/line number of upstream items
 - [x] **DEP-03**: Downstream task required start dates automatically recalculate when upstream task dates change
 - [x] **DEP-04**: System detects and prevents circular dependencies
-- [ ] **DEP-05**: User can create dependencies via drag-and-drop on the Gantt chart (from bar to bar)
+- [x] **DEP-05**: User can create dependencies via drag-and-drop on the Gantt chart (from bar to bar)
 
 ### Owners
 
@@ -115,7 +115,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEP-02 | Phase 1 | Complete |
 | DEP-03 | Phase 1 | Complete |
 | DEP-04 | Phase 1 | Complete |
-| DEP-05 | Phase 2 | Pending |
+| DEP-05 | Phase 2 | Complete |
 | OWN-01 | Phase 1 | Complete |
 | OWN-02 | Phase 1 | Complete |
 | OWN-03 | Phase 1 | Complete |

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-03-16T18:09:35Z"
+last_updated: "2026-03-16T18:25:00Z"
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 2
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,33 +18,33 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Clearly visualize the renovation schedule -- what depends on what, who owns what, and whether we're ahead or behind
-**Current focus:** Phase 2: Gantt Visualization -- Plan 1 complete, Plan 2 remaining
+**Current focus:** Phase 2 complete. Next: Phase 3: Auth + Sharing
 
 ## Current Position
 
-Phase: 2 of 4 (Gantt Visualization)
-Plan: 1 of 2 in current phase
-Status: Phase 2 In Progress
-Last activity: 2026-03-16 -- Completed 02-01-PLAN.md
+Phase: 2 of 4 (Gantt Visualization) -- COMPLETE
+Plan: 2 of 2 in current phase (all complete)
+Status: Phase 2 Complete
+Last activity: 2026-03-16 -- Completed 02-02-PLAN.md
 
-Progress: [█████░░░░░] 50% (Phase 2)
+Progress: [██████████] 100% (Phase 2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 7.3min
-- Total execution time: 0.48 hours
+- Total plans completed: 5
+- Average duration: 8.6min
+- Total execution time: 0.72 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 3 | 26min | 8.7min |
-| 02 | 1 | 3min | 3min |
+| 02 | 2 | 18min | 9min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (8min), 01-02 (3min), 01-03 (15min), 02-01 (3min)
+- Last 5 plans: 01-01 (8min), 01-02 (3min), 01-03 (15min), 02-01 (3min), 02-02 (15min)
 - Trend: stable
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -53,6 +53,7 @@ Progress: [█████░░░░░] 50% (Phase 2)
 | 01 | P02 | 3min | 2 tasks | 8 files |
 | 01 | P03 | 15min | 3 tasks | 10 files |
 | 02 | P01 | 3min | 2 tasks | 5 files |
+| 02 | P02 | 15min | 2 tasks | 6 files |
 
 *Updated after each plan completion*
 
@@ -80,19 +81,21 @@ Recent decisions affecting current work:
 - [02-01]: Blocked all task mutations in Gantt via intercept to prevent dual state ownership
 - [02-01]: Defined local SvarTask/SvarLink interfaces to decouple from SVAR internal types
 - [02-01]: Set-based parentIds lookup for O(n) summary type detection
+- [02-02]: Pre-flight cycle detection in handleAddLink before DB write for instant user feedback
+- [02-02]: Deferred link circle hover UX and Delete key for dependency deletion to post-phase cleanup
 
 ### Pending Todos
 
-None yet.
+- Post-phase cleanup: Link circle hover refinement and Delete key for dependency deletion (see TODO-post-phase.md)
 
 ### Blockers/Concerns
 
 - [Phase 2]: SVAR React Gantt + Next.js 16 App Router integration validated -- build succeeds, SSR guard works
-- [Phase 2]: Owner color via $color field needs visual browser validation (may need taskTemplate fallback)
+- [Phase 2]: Owner color via $color field validated -- works with SVAR Gantt
 - [Phase 3]: Supabase RLS with custom passcode auth (not standard Supabase Auth) needs validation
 
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: Completed 02-01-PLAN.md
+Stopped at: Completed 02-02-PLAN.md (Phase 2 complete)
 Resume file: None
