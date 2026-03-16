@@ -31,14 +31,14 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **OWN-01**: User can create, edit, and delete item owners within a project
 - [x] **OWN-02**: Each owner has a name, optional contact info field, and a color
 - [x] **OWN-03**: User can assign an owner to any task
-- [ ] **OWN-04**: Task color on the Gantt chart is determined by its owner's color
+- [x] **OWN-04**: Task color on the Gantt chart is determined by its owner's color
 
 ### Visualization
 
-- [ ] **VIS-01**: User can view tasks in a split-pane list + Gantt chart view
-- [ ] **VIS-02**: Gantt chart displays horizontal time bars for each task with owner-colored fills
-- [ ] **VIS-03**: Gantt chart displays dependency lines between connected tasks
-- [ ] **VIS-04**: Each task shows a completion % indicator on its Gantt bar
+- [x] **VIS-01**: User can view tasks in a split-pane list + Gantt chart view
+- [x] **VIS-02**: Gantt chart displays horizontal time bars for each task with owner-colored fills
+- [x] **VIS-03**: Gantt chart displays dependency lines between connected tasks
+- [x] **VIS-04**: Each task shows a completion % indicator on its Gantt bar
 
 ### Progress Tracking
 
@@ -119,11 +119,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OWN-01 | Phase 1 | Complete |
 | OWN-02 | Phase 1 | Complete |
 | OWN-03 | Phase 1 | Complete |
-| OWN-04 | Phase 2 | Pending |
-| VIS-01 | Phase 2 | Pending |
-| VIS-02 | Phase 2 | Pending |
-| VIS-03 | Phase 2 | Pending |
-| VIS-04 | Phase 2 | Pending |
+| OWN-04 | Phase 2 | Complete |
+| VIS-01 | Phase 2 | Complete |
+| VIS-02 | Phase 2 | Complete |
+| VIS-03 | Phase 2 | Complete |
+| VIS-04 | Phase 2 | Complete |
 | PROG-01 | Phase 1 | Complete |
 | PROG-02 | Phase 4 | Pending |
 | PROG-03 | Phase 4 | Pending |
