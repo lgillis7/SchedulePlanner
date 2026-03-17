@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-03-17T13:55:07Z"
+last_updated: "2026-03-17T22:13:00Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Clearly visualize the renovation schedule -- what depends on what, who owns what, and whether we're ahead or behind
-**Current focus:** Phase 3: Auth + Sharing -- Plan 01 complete, Plan 02 next
+**Current focus:** Phase 3: Auth + Sharing -- COMPLETE. Phase 4 next.
 
 ## Current Position
 
-Phase: 3 of 4 (Auth + Sharing) -- IN PROGRESS
-Plan: 1 of 2 in current phase
-Status: Plan 03-01 Complete
-Last activity: 2026-03-17 -- Completed 03-01-PLAN.md
+Phase: 3 of 4 (Auth + Sharing) -- COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase 03 Complete
+Last activity: 2026-03-17 -- Completed 03-02-PLAN.md
 
-Progress: [█████████░] 50% (Phase 3)
+Progress: [██████████] 100% (Phase 3)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 7.7min
-- Total execution time: 0.77 hours
+- Total plans completed: 7
+- Average duration: 8.3min
+- Total execution time: 0.97 hours
 
 **By Phase:**
 
@@ -42,10 +42,10 @@ Progress: [█████████░] 50% (Phase 3)
 |-------|-------|-------|----------|
 | 01 | 3 | 26min | 8.7min |
 | 02 | 2 | 18min | 9min |
-| 03 | 1 | 3min | 3min |
+| 03 | 2 | 15min | 7.5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (3min), 01-03 (15min), 02-01 (3min), 02-02 (15min), 03-01 (3min)
+- Last 5 plans: 01-03 (15min), 02-01 (3min), 02-02 (15min), 03-01 (3min), 03-02 (12min)
 - Trend: stable
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -56,6 +56,7 @@ Progress: [█████████░] 50% (Phase 3)
 | 02 | P01 | 3min | 2 tasks | 5 files |
 | 02 | P02 | 15min | 2 tasks | 6 files |
 | 03 | P01 | 3min | 2 tasks | 12 files |
+| 03 | P02 | 12min | 3 tasks | 13 files |
 
 *Updated after each plan completion*
 
@@ -89,6 +90,10 @@ Recent decisions affecting current work:
 - [03-01]: JWT role: 'authenticated' to match Supabase auth.role() expectations
 - [03-01]: 365-day JWT expiry matching user requirement for persistent auth
 - [03-01]: Root / redirects to /schedule/kitchen-reno as canonical URL
+- [03-02]: AuthProvider wraps entire app in layout.tsx for global auth state access
+- [03-02]: Editor Supabase client uses createClient (not createBrowserClient) to avoid singleton caching
+- [03-02]: Middleware renamed to proxy for Next.js 16 convention compatibility
+- [03-02]: Read-only mode hides all edit controls while preserving interactive features
 
 ### Pending Todos
 
@@ -98,10 +103,10 @@ Recent decisions affecting current work:
 
 - [Phase 2]: SVAR React Gantt + Next.js 16 App Router integration validated -- build succeeds, SSR guard works
 - [Phase 2]: Owner color via $color field validated -- works with SVAR Gantt
-- [Phase 3]: Supabase RLS with custom passcode auth (not standard Supabase Auth) needs validation
+- [Phase 3]: Supabase RLS with custom passcode auth (not standard Supabase Auth) -- VALIDATED, working end-to-end
 
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Completed 03-01-PLAN.md
+Stopped at: Completed 03-02-PLAN.md (Phase 03 complete)
 Resume file: None

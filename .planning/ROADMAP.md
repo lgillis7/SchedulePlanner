@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Data Model + Scheduling Engine** - Project scaffolding, Supabase schema, task/owner CRUD, dependency engine with cycle detection, date calculations with weekend toggle
 - [ ] **Phase 2: Gantt Visualization** - Split-pane task list + Gantt chart with owner-colored bars, dependency arrows, completion indicators, and drag-and-drop dependency creation
-- [ ] **Phase 3: Auth + Sharing** - Shared passcode gate for editing, open read-only view for contractors, session persistence, Supabase RLS enforcement
+- [x] **Phase 3: Auth + Sharing** - Shared passcode gate for editing, open read-only view for contractors, session persistence, Supabase RLS enforcement (completed 2026-03-17)
 - [ ] **Phase 4: Progress Tracking** - Progress plot with desired curve, current-state indicator, manual checkpoint snapshots, and as-built curve
 
 ## Phase Details
@@ -88,5 +88,4 @@ Phases execute in numeric order: 1 > 2 > 3 > 4
 |-------|----------------|--------|-----------|
 | 1. Data Model + Scheduling Engine | 3/3 | Complete | 2026-03-16 |
 | 2. Gantt Visualization | 2/2 | Complete | 2026-03-16 |
-| 3. Auth + Sharing | 0/1 | Not started | - |
-| 4. Progress Tracking | 0/1 | Not started | - |
+| 3. Auth + Sharing | 0/1 | 2/2 | Complete   | 2026-03-17 | 4. Progress Tracking | 0/1 | Not started | - |
