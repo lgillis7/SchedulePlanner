@@ -33,7 +33,7 @@ import type { ComputedTask, Dependency } from '@/types/scheduling';
 import { CyclicDependencyError } from '@/types/scheduling';
 import { detectCycle } from '@/lib/scheduling/dependency-graph';
 
-const ROW_HEIGHT = 38;
+const ROW_HEIGHT = 34;
 const SCALE_HEIGHT = 20;
 
 interface ScheduleClientProps {
@@ -360,15 +360,15 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="px-4 py-4">
+      <div className="px-4 py-3">
         {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between border-b border-border pb-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-lg font-semibold tracking-tight">
               {project?.name ?? 'SchedulePlanner'}
             </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Home renovation project scheduling tool
+            <p className="text-xs text-muted-foreground tracking-wide uppercase mt-0.5">
+              Schedule Planner
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -416,7 +416,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
         {/* Split-pane: TaskTable (left) | Gantt timeline (right) */}
         <div
           className="flex border border-border rounded-lg overflow-hidden"
-          style={{ height: 'calc(100vh - 160px)' }}
+          style={{ height: 'calc(100vh - 120px)' }}
         >
           {/* Left pane -- editable task table */}
           <div

@@ -14,14 +14,14 @@ export function formatDate(isoString: string): string {
 export function tierStyles(depth: number): string {
   switch (depth) {
     case 0:
-      return 'text-lg font-bold';
+      return 'text-sm font-semibold tracking-tight';
     case 1:
-      return 'text-base font-semibold';
-    case 2:
       return 'text-sm font-medium';
+    case 2:
+      return 'text-sm';
     case 3:
     default:
-      return 'text-sm font-normal text-muted-foreground';
+      return 'text-xs text-muted-foreground';
   }
 }
 

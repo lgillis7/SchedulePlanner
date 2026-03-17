@@ -43,37 +43,37 @@ export function TaskTable({
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-border bg-muted/50">
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground w-12 text-center">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-12 text-center">
               #
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground min-w-[200px]">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground min-w-[200px]">
               Task
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
               Owner
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground whitespace-nowrap">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
               Desired Start
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground text-center">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground text-center">
               Duration
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground whitespace-nowrap">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
               Req. Start
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground whitespace-nowrap">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
               End Date
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground text-center">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground text-center">
               Done
             </th>
             {isEditor && (
-              <th className="px-2 py-2 text-xs font-medium text-muted-foreground">
+              <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
                 Deps
               </th>
             )}
             {isEditor && (
-              <th className="px-2 py-2 text-xs font-medium text-muted-foreground w-20">
+              <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-20">
                 Actions
               </th>
             )}

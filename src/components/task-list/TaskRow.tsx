@@ -106,7 +106,7 @@ function EditableCell({
             setEditing(false);
           }
         }}
-        className={`w-full bg-transparent border-b border-primary outline-none ${inputClassName}`}
+        className={`w-full bg-transparent border-b border-ring outline-none ${inputClassName}`}
       />
     );
   }
@@ -293,12 +293,12 @@ export function TaskRow({
       style={rowHeight ? { height: rowHeight, maxHeight: rowHeight, overflow: 'hidden' } : undefined}
     >
       {/* Line # */}
-      <td className="px-2 py-1.5 text-center text-xs text-muted-foreground tabular-nums">
+      <td className="px-2 py-1 text-center text-xs text-muted-foreground tabular-nums">
         {task.sortOrder}
       </td>
 
       {/* Title with tier formatting */}
-      <td className={`px-2 py-1.5 ${tierIndent(task.tierDepth)}`}>
+      <td className={`px-2 py-1 ${tierIndent(task.tierDepth)}`}>
         {isEditor ? (
           <EditableCell
             value={task.title}
@@ -311,7 +311,7 @@ export function TaskRow({
       </td>
 
       {/* Owner - inline select */}
-      <td className="px-2 py-1.5 whitespace-nowrap">
+      <td className="px-2 py-1 whitespace-nowrap">
         {isEditor ? (
           <Select
             value={task.ownerId ?? '__unassigned__'}
@@ -365,7 +365,7 @@ export function TaskRow({
       </td>
 
       {/* Desired Start - calendar popover */}
-      <td className="px-2 py-1.5 text-sm whitespace-nowrap">
+      <td className="px-2 py-1 text-sm whitespace-nowrap">
         {isEditor ? (
           <Popover>
             <PopoverTrigger
@@ -390,7 +390,7 @@ export function TaskRow({
       </td>
 
       {/* Duration */}
-      <td className="px-2 py-1.5 text-sm text-center tabular-nums">
+      <td className="px-2 py-1 text-sm text-center tabular-nums">
         {isEditor ? (
           <EditableCell
             value={String(task.durationDays)}
@@ -407,17 +407,17 @@ export function TaskRow({
       </td>
 
       {/* Required Start (computed - read only) */}
-      <td className="px-2 py-1.5 text-sm text-muted-foreground whitespace-nowrap">
+      <td className="px-2 py-1 text-sm text-muted-foreground whitespace-nowrap">
         {formatDate(task.requiredStartDate)}
       </td>
 
       {/* End Date (computed - read only) */}
-      <td className="px-2 py-1.5 text-sm text-muted-foreground whitespace-nowrap">
+      <td className="px-2 py-1 text-sm text-muted-foreground whitespace-nowrap">
         {formatDate(task.endDate)}
       </td>
 
       {/* Completion % */}
-      <td className="px-2 py-1.5 text-sm text-center tabular-nums">
+      <td className="px-2 py-1 text-sm text-center tabular-nums">
         {isEditor ? (
           <EditableCell
             value={String(task.completionPct)}
@@ -436,7 +436,7 @@ export function TaskRow({
 
       {/* Dependencies - inline editable (editor only) */}
       {isEditor && (
-        <td className="px-2 py-1.5 text-sm text-muted-foreground tabular-nums">
+        <td className="px-2 py-1 text-sm text-muted-foreground tabular-nums">
           <EditableCell
             value={upstreamLineNumbers.length > 0 ? upstreamLineNumbers.join(', ') : ''}
             onSave={saveDeps}
@@ -460,7 +460,7 @@ export function TaskRow({
 
       {/* Actions (editor only) */}
       {isEditor && (
-        <td className="px-2 py-1.5">
+        <td className="px-2 py-1">
           <div className="flex items-center gap-0.5">
             {task.tierDepth < 3 && (
               <Button
