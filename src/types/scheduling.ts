@@ -61,6 +61,16 @@ export interface Project {
   includeWeekends: boolean;
 }
 
+/** A saved progress checkpoint snapshot. */
+export interface Checkpoint {
+  id: string;
+  projectId: string;
+  capturedAt: string;          // ISO timestamp from TIMESTAMPTZ
+  totalWorkDays: number;
+  completedWorkDays: number;
+  notes: string | null;
+}
+
 /** Error thrown when the dependency graph contains a cycle. */
 export class CyclicDependencyError extends Error {
   public readonly cycleTasks: string[];

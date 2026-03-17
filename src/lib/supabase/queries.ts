@@ -4,6 +4,7 @@ import type {
   RawTask,
   Dependency,
   Owner,
+  Checkpoint,
 } from '@/types/scheduling';
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,17 @@ function mapDependency(row: Record<string, unknown>): Dependency {
     upstreamTaskId: row.upstream_task_id as string,
     downstreamTaskId: row.downstream_task_id as string,
     dependencyType: row.dependency_type as 'finish-to-start',
+  };
+}
+
+function mapCheckpoint(row: Record<string, unknown>): Checkpoint {
+  return {
+    id: row.id as string,
+    projectId: row.project_id as string,
+    capturedAt: row.captured_at as string,
+    totalWorkDays: row.total_work_days as number,
+    completedWorkDays: row.completed_work_days as number,
+    notes: (row.notes as string) ?? null,
   };
 }
 
@@ -303,4 +315,44 @@ export async function removeDependency(
     .delete()
     .eq('id', depId);
   if (error) throw new Error(`Failed to remove dependency: ${error.message}`);
+}
+
+// ---------------------------------------------------------------------------
+// Checkpoints
+// ---------------------------------------------------------------------------
+
+export async function getCheckpoints(
+  client: SupabaseClient,
+  projectId: string
+): Promise<Checkpoint[]> {
+  const { data, error } = await client
+    .from('checkpoints')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('captured_at', { ascending: true });
+
+  if (error) throw new Error(`Failed to load checkpoints: ${error.message}`);
+  return (data as Record<string, unknown>[]).map(mapCheckpoint);
+}
+
+export async function createCheckpoint(
+  client: SupabaseClient,
+  checkpoint: {
+    projectId: string;
+    totalWorkDays: number;
+    completedWorkDays: number;
+  }
+): Promise<Checkpoint> {
+  const { data, error } = await client
+    .from('checkpoints')
+    .insert({
+      project_id: checkpoint.projectId,
+      total_work_days: checkpoint.totalWorkDays,
+      completed_work_days: checkpoint.completedWorkDays,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to create checkpoint: ${error.message}`);
+  return mapCheckpoint(data as Record<string, unknown>);
 }
