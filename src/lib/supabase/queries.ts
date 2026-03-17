@@ -71,6 +71,22 @@ function mapCheckpoint(row: Record<string, unknown>): Checkpoint {
 // Project
 // ---------------------------------------------------------------------------
 
+/** Fetch all projects ordered by name. */
+export async function getAllProjects(
+  client: SupabaseClient
+): Promise<Array<Project & { slug: string }>> {
+  const { data, error } = await client
+    .from('projects')
+    .select('*')
+    .order('name');
+
+  if (error) throw new Error(`Failed to load projects: ${error.message}`);
+  return (data as Record<string, unknown>[]).map((row) => ({
+    ...mapProject(row),
+    slug: row.slug as string,
+  }));
+}
+
 /** Look up a project by its URL slug. Returns null if not found. */
 export async function getProjectBySlug(
   client: SupabaseClient,
