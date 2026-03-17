@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 Phase: 4 of 4 (Progress Tracking)
 Plan: 2 of 2 in current phase (all plans complete)
 Status: v1 Complete
-Last activity: 2026-03-17 - Completed quick task 2: Add project home page for selecting which project to view
+Last activity: 2026-03-17 - Completed quick task 3: Move scrollbar, inline add-subtask, drag-to-reorder
 
 Progress: [██████████] 100% (9/9 plans)
 
@@ -119,9 +119,10 @@ Recent decisions affecting current work:
 |---|-------------|------|--------|-----------|
 | 1 | Modernize website appearance - modern, minimalist, professional fonts/colors/layout | 2026-03-17 | ff89688 | [1-modernize-website-appearance](./quick/1-modernize-website-appearance/) |
 | 2 | Add project home page for selecting which project to view | 2026-03-17 | 56d3e47 | [2-add-project-home-page-for-selecting-whic](./quick/2-add-project-home-page-for-selecting-whic/) |
+| 3 | Move scrollbar below Gantt, inline add-subtask button, drag-to-reorder rows | 2026-03-17 | f213f1d | [3-move-scrollbar-below-gantt-chart-move-ad](./quick/3-move-scrollbar-below-gantt-chart-move-ad/) |
 
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Completed quick task 2 -- Project home page
+Stopped at: Completed quick task 3 -- Scrollbar, inline add-subtask, drag-to-reorder
 Resume file: None
