@@ -92,7 +92,7 @@ Recent decisions affecting current work:
 - [03-01]: Constant-time byte comparison for passcode verification (XOR all bytes, no short-circuit)
 - [03-01]: JWT role: 'authenticated' to match Supabase auth.role() expectations
 - [03-01]: 365-day JWT expiry matching user requirement for persistent auth
-- [03-01]: Root / redirects to /schedule/kitchen-reno as canonical URL
+- [03-01]: Root / redirects to /schedule/kitchen-reno as canonical URL (SUPERSEDED by quick-2: root now shows project listing)
 - [03-02]: AuthProvider wraps entire app in layout.tsx for global auth state access
 - [03-02]: Editor Supabase client uses createClient (not createBrowserClient) to avoid singleton caching
 - [03-02]: Middleware renamed to proxy for Next.js 16 convention compatibility
@@ -118,9 +118,10 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Modernize website appearance - modern, minimalist, professional fonts/colors/layout | 2026-03-17 | ff89688 | [1-modernize-website-appearance](./quick/1-modernize-website-appearance/) |
+| 2 | Add project home page for selecting which project to view | 2026-03-17 | 56d3e47 | [2-add-project-home-page-for-selecting-whic](./quick/2-add-project-home-page-for-selecting-whic/) |
 
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Completed 04-02-PLAN.md -- All v1 plans complete
+Stopped at: Completed quick task 2 -- Project home page
 Resume file: None
