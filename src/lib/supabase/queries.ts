@@ -59,6 +59,26 @@ function mapDependency(row: Record<string, unknown>): Dependency {
 // Project
 // ---------------------------------------------------------------------------
 
+/** Look up a project by its URL slug. Returns null if not found. */
+export async function getProjectBySlug(
+  client: SupabaseClient,
+  slug: string
+): Promise<Project | null> {
+  const { data, error } = await client
+    .from('projects')
+    .select('*')
+    .eq('slug', slug)
+    .single();
+
+  if (error) {
+    // PGRST116 = no rows returned from .single()
+    if (error.code === 'PGRST116') return null;
+    throw new Error(`Failed to load project by slug: ${error.message}`);
+  }
+
+  return mapProject(data as Record<string, unknown>);
+}
+
 /** Load all project data in one call (4 parallel queries). */
 export async function getProjectWithData(
   client: SupabaseClient,
