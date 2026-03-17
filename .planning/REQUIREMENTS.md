@@ -43,11 +43,11 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Progress Tracking
 
 - [x] **PROG-01**: User can set completion percentage (0-100%) for each task
-- [ ] **PROG-02**: User can view a progress plot with time on x-axis and work-days-completed on y-axis
-- [ ] **PROG-03**: Progress plot displays a desired progress curve based on each task's desired start date and duration
-- [ ] **PROG-04**: Progress plot displays a glowing data point for current state (today's date, sum of all task % complete * duration)
-- [ ] **PROG-05**: User can manually save a progress checkpoint via button click
-- [ ] **PROG-06**: Saved checkpoints appear as an "as built" curve on the progress plot, showing actual progress over time
+- [x] **PROG-02**: User can view a progress plot with time on x-axis and work-days-completed on y-axis
+- [x] **PROG-03**: Progress plot displays a desired progress curve based on each task's desired start date and duration
+- [x] **PROG-04**: Progress plot displays a glowing data point for current state (today's date, sum of all task % complete * duration)
+- [x] **PROG-05**: User can manually save a progress checkpoint via button click
+- [x] **PROG-06**: Saved checkpoints appear as an "as built" curve on the progress plot, showing actual progress over time
 
 ### Access & Sharing
 
@@ -125,11 +125,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VIS-03 | Phase 2 | Complete |
 | VIS-04 | Phase 2 | Complete |
 | PROG-01 | Phase 1 | Complete |
-| PROG-02 | Phase 4 | Pending |
-| PROG-03 | Phase 4 | Pending |
-| PROG-04 | Phase 4 | Pending |
-| PROG-05 | Phase 4 | Pending |
-| PROG-06 | Phase 4 | Pending |
+| PROG-02 | Phase 4 | Complete |
+| PROG-03 | Phase 4 | Complete |
+| PROG-04 | Phase 4 | Complete |
+| PROG-05 | Phase 4 | Complete |
+| PROG-06 | Phase 4 | Complete |
 | AUTH-01 | Phase 3 | Complete |
 | AUTH-02 | Phase 3 | Complete |
 | AUTH-03 | Phase 3 | Complete |
