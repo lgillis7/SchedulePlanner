@@ -12,10 +12,10 @@ SchedulePlanner delivers a web-based Gantt chart tool for home renovation schedu
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Model + Scheduling Engine** - Project scaffolding, Supabase schema, task/owner CRUD, dependency engine with cycle detection, date calculations with weekend toggle
-- [ ] **Phase 2: Gantt Visualization** - Split-pane task list + Gantt chart with owner-colored bars, dependency arrows, completion indicators, and drag-and-drop dependency creation
+- [x] **Phase 1: Data Model + Scheduling Engine** - Project scaffolding, Supabase schema, task/owner CRUD, dependency engine with cycle detection, date calculations with weekend toggle
+- [x] **Phase 2: Gantt Visualization** - Split-pane task list + Gantt chart with owner-colored bars, dependency arrows, completion indicators, and drag-and-drop dependency creation
 - [x] **Phase 3: Auth + Sharing** - Shared passcode gate for editing, open read-only view for contractors, session persistence, Supabase RLS enforcement (completed 2026-03-17)
-- [ ] **Phase 4: Progress Tracking** - Progress plot with desired curve, current-state indicator, manual checkpoint snapshots, and as-built curve
+- [x] **Phase 4: Progress Tracking** (completed 2026-03-17) - Progress plot with desired curve, current-state indicator, manual checkpoint snapshots, and as-built curve
 
 ## Phase Details
 
@@ -32,9 +32,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffolding, Supabase schema, TypeScript domain types
-- [ ] 01-02-PLAN.md — Scheduling engine TDD (dependency graph, date calculator, forward pass)
-- [ ] 01-03-PLAN.md — Task/Owner CRUD UI, dependency editing, Supabase persistence
+- [x] 01-01-PLAN.md — Project scaffolding, Supabase schema, TypeScript domain types
+- [x] 01-02-PLAN.md — Scheduling engine TDD (dependency graph, date calculator, forward pass)
+- [x] 01-03-PLAN.md — Task/Owner CRUD UI, dependency editing, Supabase persistence
 
 ### Phase 2: Gantt Visualization
 **Goal**: Users can see their renovation schedule as an interactive Gantt chart with colored bars, dependency arrows, and completion indicators
@@ -48,8 +48,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Install SVAR React Gantt, adapter layer, GanttView component, split-pane page layout
-- [ ] 02-02-PLAN.md — Drag-and-drop dependency creation with cycle detection and visual verification
+- [x] 02-01-PLAN.md — Install SVAR React Gantt, adapter layer, GanttView component, split-pane page layout
+- [x] 02-02-PLAN.md — Drag-and-drop dependency creation with cycle detection and visual verification
 
 ### Phase 3: Auth + Sharing
 **Goal**: Homeowner and wife can edit behind a passcode while contractors view the full schedule via a shared link without any login
@@ -62,8 +62,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Auth backend: API routes, JWT infrastructure, RLS migration, slug routing, editor Supabase client
-- [ ] 03-02-PLAN.md — Auth UI: AuthProvider context, passcode modal, edit toggle, read-only mode enforcement
+- [x] 03-01-PLAN.md — Auth backend: API routes, JWT infrastructure, RLS migration, slug routing, editor Supabase client
+- [x] 03-02-PLAN.md — Auth UI: AuthProvider context, passcode modal, edit toggle, read-only mode enforcement
 
 ### Phase 4: Progress Tracking
 **Goal**: Users can see at a glance whether the renovation is ahead or behind schedule, with a visual plot comparing planned vs actual progress over time
@@ -74,10 +74,11 @@ Plans:
   2. The plot displays a desired progress curve derived from each task's planned start date and duration
   3. The plot shows a glowing data point representing today's actual progress (sum of each task's completion % times its duration)
   4. User can click a checkpoint button to snapshot current progress, and saved checkpoints appear as an as-built curve on the plot
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [x] 04-01-PLAN.md -- Progress data layer: curve calculator, checkpoint type, Supabase queries, useCheckpoints hook
+- [x] 04-02-PLAN.md -- Progress plot: Recharts ProgressPlot component, collapsible panel, Save Checkpoint button
 
 ## Progress
 
@@ -88,4 +89,5 @@ Phases execute in numeric order: 1 > 2 > 3 > 4
 |-------|----------------|--------|-----------|
 | 1. Data Model + Scheduling Engine | 3/3 | Complete | 2026-03-16 |
 | 2. Gantt Visualization | 2/2 | Complete | 2026-03-16 |
-| 3. Auth + Sharing | 0/1 | 2/2 | Complete   | 2026-03-17 | 4. Progress Tracking | 0/1 | Not started | - |
+| 3. Auth + Sharing | 2/2 | Complete | 2026-03-17 |
+| 4. Progress Tracking | 2/2 | Complete | 2026-03-17 |
