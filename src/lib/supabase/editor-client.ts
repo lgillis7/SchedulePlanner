@@ -1,13 +1,13 @@
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
 /**
- * Creates a Supabase browser client that uses the editor JWT
- * for write access. The Authorization header overrides the anon key,
- * satisfying RLS policies that check auth.role() = 'authenticated'.
+ * Creates a Supabase client that uses the editor JWT
+ * for write access. Uses supabase-js directly (not @supabase/ssr)
+ * to avoid the singleton behavior of createBrowserClient.
  */
 export function createEditorClient(editorToken: string) {
-  return createBrowserClient<Database>(
+  return createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

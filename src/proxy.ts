@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyEditorToken } from '@/lib/auth/jwt';
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const response = NextResponse.next();
 
   const token = req.cookies.get('editor-token')?.value;
