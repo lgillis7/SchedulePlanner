@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { TaskRow } from './TaskRow';
 import type { ComputedTask, Owner, Dependency } from '@/types/scheduling';
 
@@ -29,6 +29,8 @@ interface TaskTableProps {
   collapsedIds: Set<string>;
   /** Toggle collapse state for a parent task */
   onToggleCollapse: (taskId: string) => void;
+  /** Callback when a task is reordered via drag-and-drop */
+  onReorder?: (taskId: string, newIndex: number) => void;
 }
 
 export function TaskTable({
@@ -44,6 +46,7 @@ export function TaskTable({
   isEditor = false,
   collapsedIds,
   onToggleCollapse,
+  onReorder,
 }: TaskTableProps) {
   // Use caller-provided order (tree-sorted for Gantt alignment)
   const sortedTasks = schedule;
@@ -81,6 +84,37 @@ export function TaskTable({
     [sortedTasks, hiddenIds]
   );
 
+  // ---------------------------------------------------------------------------
+  // Drag-to-reorder state
+  // ---------------------------------------------------------------------------
+
+  const [dragSourceId, setDragSourceId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const handleDragStart = useCallback((taskId: string) => {
+    setDragSourceId(taskId);
+  }, []);
+
+  const handleDragOver = useCallback((taskId: string) => {
+    setDragOverId(taskId);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    if (dragSourceId && dragOverId && dragSourceId !== dragOverId && onReorder) {
+      // Find the target index within visibleTasks
+      const targetIndex = visibleTasks.findIndex((t) => t.id === dragOverId);
+      if (targetIndex !== -1) {
+        onReorder(dragSourceId, targetIndex);
+      }
+    }
+    setDragSourceId(null);
+    setDragOverId(null);
+  }, [dragSourceId, dragOverId, visibleTasks, onReorder]);
+
+  // Editor columns: drag handle + # + Task + Owner + Desired Start + Duration + Req Start + End Date + Done + Deps + Actions = 11
+  // Read-only columns: # + Task + Owner + Desired Start + Duration + Req Start + End Date + Done = 8
+  const totalColumns = isEditor ? 11 : 8;
+
   return (
     <div className="w-full">
       <table className="w-full text-left border-collapse gantt-aligned-table">
@@ -89,6 +123,9 @@ export function TaskTable({
             className="border-b border-border bg-muted/50"
             style={headerHeight ? { height: headerHeight } : undefined}
           >
+            {isEditor && (
+              <th className="w-8" />
+            )}
             <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-12 text-center">
               #
             </th>
@@ -141,12 +178,16 @@ export function TaskTable({
               isParent={parentIds.has(task.id)}
               isCollapsed={collapsedIds.has(task.id)}
               onToggleCollapse={onToggleCollapse}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+              isDragOver={dragOverId === task.id && dragSourceId !== task.id}
             />
           ))}
           {sortedTasks.length === 0 && (
             <tr>
               <td
-                colSpan={isEditor ? 10 : 8}
+                colSpan={totalColumns}
                 className="px-4 py-8 text-center text-muted-foreground"
               >
                 {isEditor

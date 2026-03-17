@@ -336,6 +336,78 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   );
 
   // ---------------------------------------------------------------------------
+  // Drag-to-reorder handler
+  // ---------------------------------------------------------------------------
+
+  const handleReorderTask = useCallback(
+    async (taskId: string, newIndex: number) => {
+      try {
+        // Find the dragged task
+        const draggedTask = treeSchedule.find((t) => t.id === taskId);
+        if (!draggedTask) return;
+
+        // Find the target task at the drop position
+        // We need to work with visible tasks in tree order
+        const targetTask = treeSchedule.filter((t) => {
+          // Filter to visible tasks (not hidden by collapse)
+          let current = t;
+          const taskMap = new Map(treeSchedule.map((tt) => [tt.id, tt]));
+          while (current.parentTaskId) {
+            // Collapsed check not available here, so just use full list
+            const parent = taskMap.get(current.parentTaskId);
+            if (!parent) break;
+            current = parent;
+          }
+          return true;
+        })[newIndex];
+
+        if (!targetTask) return;
+
+        // Only allow reordering among siblings (same parentTaskId)
+        if (draggedTask.parentTaskId !== targetTask.parentTaskId) return;
+
+        const parentId = draggedTask.parentTaskId;
+
+        // Get all siblings in current order
+        const siblings = treeSchedule.filter((t) => t.parentTaskId === parentId);
+
+        // Remove dragged task and insert at target position
+        const withoutDragged = siblings.filter((t) => t.id !== taskId);
+        const targetIdx = withoutDragged.findIndex((t) => t.id === targetTask.id);
+        const insertIdx = targetIdx === -1 ? withoutDragged.length : targetIdx;
+
+        const reordered = [
+          ...withoutDragged.slice(0, insertIdx),
+          draggedTask,
+          ...withoutDragged.slice(insertIdx),
+        ];
+
+        // Assign new sequential sortOrder values and update changed tasks
+        const updates: Promise<unknown>[] = [];
+        for (let i = 0; i < reordered.length; i++) {
+          const newSortOrder = i + 1;
+          if (reordered[i].sortOrder !== newSortOrder) {
+            updates.push(
+              updateTask(client, reordered[i].id, { sortOrder: newSortOrder })
+            );
+          }
+        }
+
+        if (updates.length > 0) {
+          await Promise.all(updates);
+          await refetch();
+          toast.success('Task reordered');
+        }
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : 'Failed to reorder task'
+        );
+      }
+    },
+    [client, treeSchedule, refetch]
+  );
+
+  // ---------------------------------------------------------------------------
   // Owner handlers
   // ---------------------------------------------------------------------------
 
@@ -540,6 +612,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
                 isEditor={isEditor}
                 collapsedIds={collapsedIds}
                 onToggleCollapse={toggleCollapse}
+                onReorder={isEditor ? handleReorderTask : undefined}
               />
             </div>
           </div>

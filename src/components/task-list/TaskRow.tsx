@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Trash2, Plus, CalendarIcon, ChevronRight, ChevronDown } from 'lucide-react';
+import { Trash2, Plus, CalendarIcon, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -47,6 +47,12 @@ interface TaskRowProps {
   isCollapsed?: boolean;
   /** Toggle collapse state for this task */
   onToggleCollapse?: (taskId: string) => void;
+  /** Drag-to-reorder callbacks (editor only) */
+  onDragStart?: (taskId: string) => void;
+  onDragOver?: (taskId: string) => void;
+  onDragEnd?: () => void;
+  /** Whether this row is the current drag-over target */
+  isDragOver?: boolean;
 }
 
 // Inline editable text/number cell
@@ -140,6 +146,10 @@ export function TaskRow({
   isParent = false,
   isCollapsed = false,
   onToggleCollapse,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  isDragOver = false,
 }: TaskRowProps) {
   const owner = task.ownerId
     ? owners.find((o) => o.id === task.ownerId)
@@ -298,9 +308,20 @@ export function TaskRow({
 
   return (
     <tr
-      className="group/row border-b border-border hover:bg-muted/50"
+      className={`group/row border-b border-border hover:bg-muted/50 ${isDragOver ? 'border-t-2 border-t-primary' : ''}`}
       style={rowHeight ? { height: rowHeight, maxHeight: rowHeight, overflow: 'hidden' } : undefined}
+      draggable={isEditor}
+      onDragStart={() => onDragStart?.(task.id)}
+      onDragOver={(e) => { e.preventDefault(); onDragOver?.(task.id); }}
+      onDragEnd={() => onDragEnd?.()}
     >
+      {/* Drag handle (editor only) */}
+      {isEditor && (
+        <td className="px-1 py-1 w-8">
+          <GripVertical className="size-3.5 text-muted-foreground cursor-grab opacity-0 group-hover/row:opacity-100" />
+        </td>
+      )}
+
       {/* Line # */}
       <td className="px-2 py-1 text-center text-xs text-muted-foreground tabular-nums">
         {task.sortOrder}
