@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { IApi } from '@svar-ui/react-gantt';
 import { useProject } from '@/hooks/useProject';
@@ -97,6 +97,24 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   }, []);
 
   // ---------------------------------------------------------------------------
+  // Collapse state (shared between TaskTable and Gantt)
+  // ---------------------------------------------------------------------------
+
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
+
+  const toggleCollapse = useCallback((taskId: string) => {
+    setCollapsedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskId)) {
+        next.delete(taskId);
+      } else {
+        next.add(taskId);
+      }
+      return next;
+    });
+  }, []);
+
+  // ---------------------------------------------------------------------------
   // SVAR Gantt data transforms (memoized, tree-sorted for alignment)
   // ---------------------------------------------------------------------------
 
@@ -106,8 +124,8 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   );
 
   const svarTasks = useMemo(
-    () => toSvarTasks(treeSchedule, owners),
-    [treeSchedule, owners]
+    () => toSvarTasks(treeSchedule, owners, collapsedIds),
+    [treeSchedule, owners, collapsedIds]
   );
   const svarLinks = useMemo(
     () => toSvarLinks(dependencies),
@@ -443,6 +461,8 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
                 rowHeight={ROW_HEIGHT}
                 headerHeight={scaleHeaderHeight}
                 isEditor={isEditor}
+                collapsedIds={collapsedIds}
+                onToggleCollapse={toggleCollapse}
               />
             </div>
           </div>

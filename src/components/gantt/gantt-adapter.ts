@@ -35,7 +35,8 @@ const DEFAULT_NEUTRAL_COLOR = '#94A3B8'; // Tailwind slate-400
  */
 export function toSvarTasks(
   tasks: ComputedTask[],
-  owners: Owner[]
+  owners: Owner[],
+  collapsedIds?: Set<string>
 ): SvarTask[] {
   const ownerMap = new Map(owners.map((o) => [o.id, o]));
   const parentIds = new Set(
@@ -55,7 +56,7 @@ export function toSvarTasks(
     type: isSummary ? ('summary' as const) : ('task' as const),
     // Only set open on summary tasks — SVAR's toArray recurses into
     // a.data when open===true, but leaf nodes have data:null which crashes.
-    open: isSummary ? true : undefined,
+    open: isSummary ? !collapsedIds?.has(t.id) : undefined,
     $color: t.ownerId
       ? (ownerMap.get(t.ownerId)?.color ?? DEFAULT_NEUTRAL_COLOR)
       : DEFAULT_NEUTRAL_COLOR,

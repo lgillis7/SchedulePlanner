@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Trash2, Plus, CalendarIcon } from 'lucide-react';
+import { Trash2, Plus, CalendarIcon, ChevronRight, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -41,6 +41,12 @@ interface TaskRowProps {
   rowHeight?: number;
   /** When false, renders all fields as static text */
   isEditor?: boolean;
+  /** Whether this task has children */
+  isParent?: boolean;
+  /** Whether this parent task's children are collapsed */
+  isCollapsed?: boolean;
+  /** Toggle collapse state for this task */
+  onToggleCollapse?: (taskId: string) => void;
 }
 
 // Inline editable text/number cell
@@ -131,6 +137,9 @@ export function TaskRow({
   onAddSubtask,
   rowHeight,
   isEditor = false,
+  isParent = false,
+  isCollapsed = false,
+  onToggleCollapse,
 }: TaskRowProps) {
   const owner = task.ownerId
     ? owners.find((o) => o.id === task.ownerId)
@@ -299,15 +308,28 @@ export function TaskRow({
 
       {/* Title with tier formatting */}
       <td className={`px-2 py-1 ${tierIndent(task.tierDepth)}`}>
-        {isEditor ? (
-          <EditableCell
-            value={task.title}
-            onSave={saveTitle}
-            className={tierStyles(task.tierDepth)}
-          />
-        ) : (
-          <span className={tierStyles(task.tierDepth)}>{task.title}</span>
-        )}
+        <div className="flex items-center gap-1">
+          {isParent ? (
+            <button
+              onClick={() => onToggleCollapse?.(task.id)}
+              className="shrink-0 size-4 flex items-center justify-center text-muted-foreground hover:text-foreground"
+              aria-label={isCollapsed ? 'Expand subtasks' : 'Collapse subtasks'}
+            >
+              {isCollapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+            </button>
+          ) : (
+            <span className="shrink-0 size-4" />
+          )}
+          {isEditor ? (
+            <EditableCell
+              value={task.title}
+              onSave={saveTitle}
+              className={tierStyles(task.tierDepth)}
+            />
+          ) : (
+            <span className={tierStyles(task.tierDepth)}>{task.title}</span>
+          )}
+        </div>
       </td>
 
       {/* Owner - inline select */}
@@ -364,9 +386,9 @@ export function TaskRow({
         )}
       </td>
 
-      {/* Desired Start - calendar popover */}
+      {/* Desired Start - calendar popover (read-only for parents) */}
       <td className="px-2 py-1 text-sm whitespace-nowrap">
-        {isEditor ? (
+        {isEditor && !isParent ? (
           <Popover>
             <PopoverTrigger
               render={
@@ -385,13 +407,13 @@ export function TaskRow({
             </PopoverContent>
           </Popover>
         ) : (
-          <span className="text-sm">{formatDate(task.desiredStartDate)}</span>
+          <span className={`text-sm ${isParent ? 'text-muted-foreground' : ''}`}>{formatDate(task.desiredStartDate)}</span>
         )}
       </td>
 
-      {/* Duration */}
+      {/* Duration (read-only for parents) */}
       <td className="px-2 py-1 text-sm text-center tabular-nums">
-        {isEditor ? (
+        {isEditor && !isParent ? (
           <EditableCell
             value={String(task.durationDays)}
             onSave={saveDuration}
@@ -402,7 +424,7 @@ export function TaskRow({
             inputClassName="w-16 text-center"
           />
         ) : (
-          <span>{task.durationDays}d</span>
+          <span className={isParent ? 'text-muted-foreground' : ''}>{task.durationDays}d</span>
         )}
       </td>
 
@@ -416,9 +438,9 @@ export function TaskRow({
         {formatDate(task.endDate)}
       </td>
 
-      {/* Completion % */}
+      {/* Completion % (read-only for parents) */}
       <td className="px-2 py-1 text-sm text-center tabular-nums">
-        {isEditor ? (
+        {isEditor && !isParent ? (
           <EditableCell
             value={String(task.completionPct)}
             onSave={saveCompletion}
@@ -430,7 +452,7 @@ export function TaskRow({
             inputClassName="w-14 text-center"
           />
         ) : (
-          <span>{task.completionPct}%</span>
+          <span className={isParent ? 'text-muted-foreground' : ''}>{task.completionPct}%</span>
         )}
       </td>
 

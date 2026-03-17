@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { TaskRow } from './TaskRow';
 import type { ComputedTask, Owner, Dependency } from '@/types/scheduling';
 
@@ -24,6 +25,10 @@ interface TaskTableProps {
   headerHeight?: number;
   /** When false, hides edit controls for read-only view */
   isEditor?: boolean;
+  /** Set of collapsed parent task IDs */
+  collapsedIds: Set<string>;
+  /** Toggle collapse state for a parent task */
+  onToggleCollapse: (taskId: string) => void;
 }
 
 export function TaskTable({
@@ -37,9 +42,44 @@ export function TaskTable({
   rowHeight,
   headerHeight,
   isEditor = false,
+  collapsedIds,
+  onToggleCollapse,
 }: TaskTableProps) {
   // Use caller-provided order (tree-sorted for Gantt alignment)
   const sortedTasks = schedule;
+
+  // Determine which task IDs are parents (have children)
+  const parentIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const t of sortedTasks) {
+      if (t.parentTaskId) ids.add(t.parentTaskId);
+    }
+    return ids;
+  }, [sortedTasks]);
+
+  // Build set of hidden task IDs (children of collapsed ancestors)
+  const hiddenIds = useMemo(() => {
+    const hidden = new Set<string>();
+    const taskMap = new Map(sortedTasks.map((t) => [t.id, t]));
+    for (const task of sortedTasks) {
+      let current = task;
+      while (current.parentTaskId) {
+        if (collapsedIds.has(current.parentTaskId)) {
+          hidden.add(task.id);
+          break;
+        }
+        const parent = taskMap.get(current.parentTaskId);
+        if (!parent) break;
+        current = parent;
+      }
+    }
+    return hidden;
+  }, [sortedTasks, collapsedIds]);
+
+  const visibleTasks = useMemo(
+    () => sortedTasks.filter((t) => !hiddenIds.has(t.id)),
+    [sortedTasks, hiddenIds]
+  );
 
   return (
     <div className="w-full">
@@ -86,7 +126,7 @@ export function TaskTable({
           </tr>
         </thead>
         <tbody>
-          {sortedTasks.map((task) => (
+          {visibleTasks.map((task) => (
             <TaskRow
               key={task.id}
               task={task}
@@ -98,6 +138,9 @@ export function TaskTable({
               onAddSubtask={onAddSubtask}
               rowHeight={rowHeight}
               isEditor={isEditor}
+              isParent={parentIds.has(task.id)}
+              isCollapsed={collapsedIds.has(task.id)}
+              onToggleCollapse={onToggleCollapse}
             />
           ))}
           {sortedTasks.length === 0 && (
