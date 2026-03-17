@@ -39,6 +39,8 @@ interface TaskRowProps {
   onAddSubtask: (parentTask: ComputedTask) => void;
   /** Fixed row height in pixels for Gantt scroll sync alignment */
   rowHeight?: number;
+  /** When false, renders all fields as static text */
+  isEditor?: boolean;
 }
 
 // Inline editable text/number cell
@@ -128,6 +130,7 @@ export function TaskRow({
   onDelete,
   onAddSubtask,
   rowHeight,
+  isEditor = false,
 }: TaskRowProps) {
   const owner = task.ownerId
     ? owners.find((o) => o.id === task.ownerId)
@@ -296,85 +299,111 @@ export function TaskRow({
 
       {/* Title with tier formatting */}
       <td className={`px-2 py-1.5 ${tierIndent(task.tierDepth)}`}>
-        <EditableCell
-          value={task.title}
-          onSave={saveTitle}
-          className={tierStyles(task.tierDepth)}
-        />
+        {isEditor ? (
+          <EditableCell
+            value={task.title}
+            onSave={saveTitle}
+            className={tierStyles(task.tierDepth)}
+          />
+        ) : (
+          <span className={tierStyles(task.tierDepth)}>{task.title}</span>
+        )}
       </td>
 
       {/* Owner - inline select */}
       <td className="px-2 py-1.5 whitespace-nowrap">
-        <Select
-          value={task.ownerId ?? '__unassigned__'}
-          onValueChange={saveOwner}
-        >
-          <SelectTrigger className="h-auto border-none bg-transparent shadow-none p-0 min-w-[100px]">
-            <SelectValue>
-              {owner ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <span
-                    className="inline-block size-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: owner.color }}
-                  />
-                  <span className="text-sm">{owner.name}</span>
-                </span>
-              ) : (
-                <span className="text-sm text-muted-foreground">
-                  Unassigned
-                </span>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__unassigned__">Unassigned</SelectItem>
-            {owners.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                <span className="inline-flex items-center gap-1.5">
-                  <span
-                    className="inline-block size-2.5 rounded-full"
-                    style={{ backgroundColor: o.color }}
-                  />
-                  {o.name}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {isEditor ? (
+          <Select
+            value={task.ownerId ?? '__unassigned__'}
+            onValueChange={saveOwner}
+          >
+            <SelectTrigger className="h-auto border-none bg-transparent shadow-none p-0 min-w-[100px]">
+              <SelectValue>
+                {owner ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span
+                      className="inline-block size-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: owner.color }}
+                    />
+                    <span className="text-sm">{owner.name}</span>
+                  </span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    Unassigned
+                  </span>
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__unassigned__">Unassigned</SelectItem>
+              {owners.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span
+                      className="inline-block size-2.5 rounded-full"
+                      style={{ backgroundColor: o.color }}
+                    />
+                    {o.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          owner ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-block size-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: owner.color }}
+              />
+              <span className="text-sm">{owner.name}</span>
+            </span>
+          ) : (
+            <span className="text-sm text-muted-foreground">Unassigned</span>
+          )
+        )}
       </td>
 
       {/* Desired Start - calendar popover */}
       <td className="px-2 py-1.5 text-sm whitespace-nowrap">
-        <Popover>
-          <PopoverTrigger
-            render={
-              <button className="inline-flex items-center gap-1 cursor-pointer hover:bg-muted/80 rounded px-0.5 -mx-0.5" />
-            }
-          >
-            <CalendarIcon className="size-3 text-muted-foreground" />
-            {formatDate(task.desiredStartDate)}
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={parseISO(task.desiredStartDate)}
-              onSelect={saveDate}
-            />
-          </PopoverContent>
-        </Popover>
+        {isEditor ? (
+          <Popover>
+            <PopoverTrigger
+              render={
+                <button className="inline-flex items-center gap-1 cursor-pointer hover:bg-muted/80 rounded px-0.5 -mx-0.5" />
+              }
+            >
+              <CalendarIcon className="size-3 text-muted-foreground" />
+              {formatDate(task.desiredStartDate)}
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={parseISO(task.desiredStartDate)}
+                onSelect={saveDate}
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <span className="text-sm">{formatDate(task.desiredStartDate)}</span>
+        )}
       </td>
 
       {/* Duration */}
       <td className="px-2 py-1.5 text-sm text-center tabular-nums">
-        <EditableCell
-          value={String(task.durationDays)}
-          onSave={saveDuration}
-          type="number"
-          suffix="d"
-          min={0.1}
-          step={0.5}
-          inputClassName="w-16 text-center"
-        />
+        {isEditor ? (
+          <EditableCell
+            value={String(task.durationDays)}
+            onSave={saveDuration}
+            type="number"
+            suffix="d"
+            min={0.1}
+            step={0.5}
+            inputClassName="w-16 text-center"
+          />
+        ) : (
+          <span>{task.durationDays}d</span>
+        )}
       </td>
 
       {/* Required Start (computed - read only) */}
@@ -389,71 +418,79 @@ export function TaskRow({
 
       {/* Completion % */}
       <td className="px-2 py-1.5 text-sm text-center tabular-nums">
-        <EditableCell
-          value={String(task.completionPct)}
-          onSave={saveCompletion}
-          type="number"
-          suffix="%"
-          min={0}
-          max={100}
-          step={5}
-          inputClassName="w-14 text-center"
-        />
-      </td>
-
-      {/* Dependencies - inline editable */}
-      <td className="px-2 py-1.5 text-sm text-muted-foreground tabular-nums">
-        <EditableCell
-          value={upstreamLineNumbers.length > 0 ? upstreamLineNumbers.join(', ') : ''}
-          onSave={saveDeps}
-          inputClassName="w-20"
-          className={upstreamLineNumbers.length === 0 ? 'text-muted-foreground' : ''}
-        />
-        {!upstreamLineNumbers.length && (
-          <span
-            className="cursor-pointer hover:bg-muted/80 rounded px-0.5 text-muted-foreground"
-            onClick={(e) => {
-              // Find the EditableCell and trigger click on it
-              const cell = e.currentTarget.previousElementSibling as HTMLElement;
-              if (cell) cell.click();
-            }}
-          >
-            -
-          </span>
+        {isEditor ? (
+          <EditableCell
+            value={String(task.completionPct)}
+            onSave={saveCompletion}
+            type="number"
+            suffix="%"
+            min={0}
+            max={100}
+            step={5}
+            inputClassName="w-14 text-center"
+          />
+        ) : (
+          <span>{task.completionPct}%</span>
         )}
       </td>
 
-      {/* Actions */}
-      <td className="px-2 py-1.5">
-        <div className="flex items-center gap-0.5">
-          {task.tierDepth < 3 && (
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onAddSubtask(task)}
-              aria-label={`Add subtask to ${task.title}`}
+      {/* Dependencies - inline editable (editor only) */}
+      {isEditor && (
+        <td className="px-2 py-1.5 text-sm text-muted-foreground tabular-nums">
+          <EditableCell
+            value={upstreamLineNumbers.length > 0 ? upstreamLineNumbers.join(', ') : ''}
+            onSave={saveDeps}
+            inputClassName="w-20"
+            className={upstreamLineNumbers.length === 0 ? 'text-muted-foreground' : ''}
+          />
+          {!upstreamLineNumbers.length && (
+            <span
+              className="cursor-pointer hover:bg-muted/80 rounded px-0.5 text-muted-foreground"
+              onClick={(e) => {
+                // Find the EditableCell and trigger click on it
+                const cell = e.currentTarget.previousElementSibling as HTMLElement;
+                if (cell) cell.click();
+              }}
             >
-              <Plus />
-            </Button>
+              -
+            </span>
           )}
-          <Button
-            variant="destructive"
-            size="icon-xs"
-            onClick={() => {
-              if (
-                window.confirm(
-                  `Delete "${task.title}" and all its subtasks?`
-                )
-              ) {
-                onDelete(task.id);
-              }
-            }}
-            aria-label={`Delete ${task.title}`}
-          >
-            <Trash2 />
-          </Button>
-        </div>
-      </td>
+        </td>
+      )}
+
+      {/* Actions (editor only) */}
+      {isEditor && (
+        <td className="px-2 py-1.5">
+          <div className="flex items-center gap-0.5">
+            {task.tierDepth < 3 && (
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onAddSubtask(task)}
+                aria-label={`Add subtask to ${task.title}`}
+              >
+                <Plus />
+              </Button>
+            )}
+            <Button
+              variant="destructive"
+              size="icon-xs"
+              onClick={() => {
+                if (
+                  window.confirm(
+                    `Delete "${task.title}" and all its subtasks?`
+                  )
+                ) {
+                  onDelete(task.id);
+                }
+              }}
+              aria-label={`Delete ${task.title}`}
+            >
+              <Trash2 />
+            </Button>
+          </div>
+        </td>
+      )}
     </tr>
   );
 }

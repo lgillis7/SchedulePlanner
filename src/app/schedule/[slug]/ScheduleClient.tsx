@@ -5,7 +5,9 @@ import { toast } from 'sonner';
 import type { IApi } from '@svar-ui/react-gantt';
 import { useProject } from '@/hooks/useProject';
 import { useSchedule } from '@/hooks/useSchedule';
+import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import { createEditorClient } from '@/lib/supabase/editor-client';
 import {
   createTask,
   updateTask,
@@ -25,6 +27,7 @@ import {
 } from '@/components/gantt/gantt-adapter';
 import { TaskTable } from '@/components/task-list/TaskTable';
 import { OwnerManager } from '@/components/owners/OwnerManager';
+import { EditToggle } from '@/components/auth/EditToggle';
 import { Button } from '@/components/ui/button';
 import type { ComputedTask, Dependency } from '@/types/scheduling';
 import { CyclicDependencyError } from '@/types/scheduling';
@@ -46,7 +49,15 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
     project?.includeWeekends ?? false
   );
 
-  const client = createClient();
+  const { isEditor, isLoading: authLoading, editorToken } = useAuth();
+
+  // Memoize the Supabase client based on auth state
+  const client = useMemo(() => {
+    if (isEditor && editorToken) {
+      return createEditorClient(editorToken);
+    }
+    return createClient();
+  }, [isEditor, editorToken]);
 
   // ---------------------------------------------------------------------------
   // Scroll sync refs
@@ -318,7 +329,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   // Render
   // ---------------------------------------------------------------------------
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-muted-foreground">Loading project...</p>
@@ -361,28 +372,34 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={project?.includeWeekends ?? false}
-                onChange={handleToggleWeekends}
-                className="size-4 rounded border-input accent-primary"
-              />
-              Include weekends
-            </label>
+            {isEditor && (
+              <>
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={project?.includeWeekends ?? false}
+                    onChange={handleToggleWeekends}
+                    className="size-4 rounded border-input accent-primary"
+                  />
+                  Include weekends
+                </label>
 
-            <Button variant="outline" size="sm" onClick={handleAddTask}>
-              Add Task
-            </Button>
+                <Button variant="outline" size="sm" onClick={handleAddTask}>
+                  Add Task
+                </Button>
 
-            <OwnerManager
-              owners={owners}
-              tasks={tasks}
-              projectId={projectId}
-              onCreate={handleCreateOwner}
-              onUpdate={handleUpdateOwner}
-              onDelete={handleDeleteOwner}
-            />
+                <OwnerManager
+                  owners={owners}
+                  tasks={tasks}
+                  projectId={projectId}
+                  onCreate={handleCreateOwner}
+                  onUpdate={handleUpdateOwner}
+                  onDelete={handleDeleteOwner}
+                />
+              </>
+            )}
+
+            <EditToggle />
           </div>
         </div>
 
@@ -425,6 +442,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
                 onAddTask={handleAddTask}
                 onAddSubtask={handleAddSubtask}
                 rowHeight={ROW_HEIGHT}
+                isEditor={isEditor}
               />
             </div>
           </div>
@@ -434,12 +452,13 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
             <GanttView
               tasks={svarTasks}
               links={svarLinks}
-              onAddLink={handleAddLink}
-              onDeleteLink={handleDeleteLink}
+              onAddLink={isEditor ? handleAddLink : undefined}
+              onDeleteLink={isEditor ? handleDeleteLink : undefined}
               onInit={handleGanttInit}
               showGrid={false}
               cellHeight={ROW_HEIGHT}
               scaleHeight={SCALE_HEIGHT}
+              isEditor={isEditor}
             />
           </div>
         </div>

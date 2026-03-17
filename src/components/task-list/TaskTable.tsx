@@ -20,6 +20,8 @@ interface TaskTableProps {
   onAddSubtask: (parentTask: ComputedTask) => void;
   /** Fixed row height in pixels for Gantt scroll sync alignment */
   rowHeight?: number;
+  /** When false, hides edit controls for read-only view */
+  isEditor?: boolean;
 }
 
 export function TaskTable({
@@ -31,6 +33,7 @@ export function TaskTable({
   onAddTask,
   onAddSubtask,
   rowHeight,
+  isEditor = false,
 }: TaskTableProps) {
   // Use caller-provided order (tree-sorted for Gantt alignment)
   const sortedTasks = schedule;
@@ -64,12 +67,16 @@ export function TaskTable({
             <th className="px-2 py-2 text-xs font-medium text-muted-foreground text-center">
               Done
             </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground">
-              Deps
-            </th>
-            <th className="px-2 py-2 text-xs font-medium text-muted-foreground w-20">
-              Actions
-            </th>
+            {isEditor && (
+              <th className="px-2 py-2 text-xs font-medium text-muted-foreground">
+                Deps
+              </th>
+            )}
+            {isEditor && (
+              <th className="px-2 py-2 text-xs font-medium text-muted-foreground w-20">
+                Actions
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -84,15 +91,18 @@ export function TaskTable({
               onDelete={onDelete}
               onAddSubtask={onAddSubtask}
               rowHeight={rowHeight}
+              isEditor={isEditor}
             />
           ))}
           {sortedTasks.length === 0 && (
             <tr>
               <td
-                colSpan={10}
+                colSpan={isEditor ? 10 : 8}
                 className="px-4 py-8 text-center text-muted-foreground"
               >
-                No tasks yet. Click &quot;Add Task&quot; to create one.
+                {isEditor
+                  ? 'No tasks yet. Click "Add Task" to create one.'
+                  : 'No tasks yet.'}
               </td>
             </tr>
           )}

@@ -9,5 +9,8 @@ export async function GET(req: NextRequest) {
   }
 
   const valid = await verifyEditorToken(token);
-  return NextResponse.json({ authenticated: valid });
+  if (valid) {
+    return NextResponse.json({ authenticated: true, token });
+  }
+  return NextResponse.json({ authenticated: false });
 }

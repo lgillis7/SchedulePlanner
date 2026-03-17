@@ -20,6 +20,8 @@ interface GanttViewProps {
   scaleHeight?: number;
   /** When false, hides the left-side grid (columns={false}) */
   showGrid?: boolean;
+  /** When false, hides link drag circles for read-only mode */
+  isEditor?: boolean;
 }
 
 export function GanttView({
@@ -31,6 +33,7 @@ export function GanttView({
   cellHeight,
   scaleHeight,
   showGrid = true,
+  isEditor = false,
 }: GanttViewProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -78,16 +81,22 @@ export function GanttView({
   return (
     <Willow>
       <style>{`
-        /* Only show right (output) link circle on bar hover by default.
-           Left (input) circles appear only when SVAR enters linking mode (.wx-target). */
-        .wx-link.wx-left:not(.wx-target):not(.wx-visible) {
-          opacity: 0 !important;
-          pointer-events: none !important;
-        }
-        .wx-link.wx-left.wx-target,
-        .wx-link.wx-left.wx-visible {
-          opacity: 1 !important;
-          pointer-events: auto !important;
+        ${isEditor
+          ? `/* Only show right (output) link circle on bar hover by default.
+              Left (input) circles appear only when SVAR enters linking mode (.wx-target). */
+            .wx-link.wx-left:not(.wx-target):not(.wx-visible) {
+              opacity: 0 !important;
+              pointer-events: none !important;
+            }
+            .wx-link.wx-left.wx-target,
+            .wx-link.wx-left.wx-visible {
+              opacity: 1 !important;
+              pointer-events: auto !important;
+            }`
+          : `/* Read-only: hide all link drag circles */
+            .wx-link {
+              display: none !important;
+            }`
         }
       `}</style>
       <Gantt
