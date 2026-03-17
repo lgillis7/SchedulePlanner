@@ -51,9 +51,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Access & Sharing
 
-- [ ] **AUTH-01**: Editing requires entering a shared passcode (single code, no account management)
-- [ ] **AUTH-02**: Read-only view is accessible without any login — shareable via URL for contractors
-- [ ] **AUTH-03**: Passcode entry persists across browser sessions (cookie/localStorage) so user doesn't re-enter every visit
+- [x] **AUTH-01**: Editing requires entering a shared passcode (single code, no account management)
+- [x] **AUTH-02**: Read-only view is accessible without any login — shareable via URL for contractors
+- [x] **AUTH-03**: Passcode entry persists across browser sessions (cookie/localStorage) so user doesn't re-enter every visit
 
 ### Infrastructure
 
@@ -130,9 +130,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROG-04 | Phase 4 | Pending |
 | PROG-05 | Phase 4 | Pending |
 | PROG-06 | Phase 4 | Pending |
-| AUTH-01 | Phase 3 | Pending |
-| AUTH-02 | Phase 3 | Pending |
-| AUTH-03 | Phase 3 | Pending |
+| AUTH-01 | Phase 3 | Complete |
+| AUTH-02 | Phase 3 | Complete |
+| AUTH-03 | Phase 3 | Complete |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
