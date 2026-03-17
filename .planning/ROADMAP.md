@@ -59,10 +59,11 @@ Plans:
   1. Visiting the schedule URL shows the full read-only view without any login prompt
   2. Editing requires entering a shared passcode; incorrect passcode is rejected
   3. After entering the correct passcode once, the user stays authenticated across browser sessions without re-entering it
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — Auth backend: API routes, JWT infrastructure, RLS migration, slug routing, editor Supabase client
+- [ ] 03-02-PLAN.md — Auth UI: AuthProvider context, passcode modal, edit toggle, read-only mode enforcement
 
 ### Phase 4: Progress Tracking
 **Goal**: Users can see at a glance whether the renovation is ahead or behind schedule, with a visual plot comparing planned vs actual progress over time
