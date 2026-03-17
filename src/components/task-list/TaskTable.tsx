@@ -83,7 +83,7 @@ export function TaskTable({
 
   return (
     <div className="w-full">
-      <table className="w-full text-left">
+      <table className="w-full text-left border-collapse gantt-aligned-table">
         <thead>
           <tr
             className="border-b border-border bg-muted/50"

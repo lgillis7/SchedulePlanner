@@ -339,7 +339,7 @@ export function TaskRow({
             value={task.ownerId ?? '__unassigned__'}
             onValueChange={saveOwner}
           >
-            <SelectTrigger className="h-auto border-none bg-transparent shadow-none p-0 min-w-[100px]">
+            <SelectTrigger className="!h-auto border-none bg-transparent shadow-none !p-0 min-w-[100px]">
               <SelectValue>
                 {owner ? (
                   <span className="inline-flex items-center gap-1.5">
