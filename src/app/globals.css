@@ -136,3 +136,8 @@
 [class^="wx-"] {
   font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif !important;
 }
+
+/* Ensure SVAR Gantt horizontal scrollbar is always visible */
+.wx-willow .wx-scroll-x {
+  overflow-x: scroll !important;
+}

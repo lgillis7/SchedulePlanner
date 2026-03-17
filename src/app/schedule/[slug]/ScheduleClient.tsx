@@ -545,7 +545,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
           </div>
 
           {/* Right pane -- Gantt timeline only */}
-          <div className="min-w-0" style={{ width: '45%' }}>
+          <div className="min-w-0 flex flex-col" style={{ width: '45%' }}>
             <GanttView
               tasks={svarTasks}
               links={svarLinks}

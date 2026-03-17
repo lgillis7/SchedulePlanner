@@ -298,7 +298,7 @@ export function TaskRow({
 
   return (
     <tr
-      className="border-b border-border hover:bg-muted/50"
+      className="group/row border-b border-border hover:bg-muted/50"
       style={rowHeight ? { height: rowHeight, maxHeight: rowHeight, overflow: 'hidden' } : undefined}
     >
       {/* Line # */}
@@ -328,6 +328,17 @@ export function TaskRow({
             />
           ) : (
             <span className={tierStyles(task.tierDepth)}>{task.title}</span>
+          )}
+          {isEditor && task.tierDepth < 3 && (
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => onAddSubtask(task)}
+              aria-label={`Add subtask to ${task.title}`}
+              className="opacity-0 group-hover/row:opacity-100 shrink-0"
+            >
+              <Plus className="size-3" />
+            </Button>
           )}
         </div>
       </td>
@@ -484,16 +495,6 @@ export function TaskRow({
       {isEditor && (
         <td className="px-2 py-1">
           <div className="flex items-center gap-0.5">
-            {task.tierDepth < 3 && (
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => onAddSubtask(task)}
-                aria-label={`Add subtask to ${task.title}`}
-              >
-                <Plus />
-              </Button>
-            )}
             <Button
               variant="destructive"
               size="icon-xs"
