@@ -424,7 +424,6 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
             className="min-w-0 overflow-auto border-r border-border"
             style={{
               width: '55%',
-              paddingTop: scaleHeaderHeight,
               scrollbarWidth: 'none',
             }}
             onScroll={handleTableScroll}
@@ -442,6 +441,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
                 onAddTask={handleAddTask}
                 onAddSubtask={handleAddSubtask}
                 rowHeight={ROW_HEIGHT}
+                headerHeight={scaleHeaderHeight}
                 isEditor={isEditor}
               />
             </div>

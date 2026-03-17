@@ -122,9 +122,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04';
   }
   html {
     @apply font-sans;
   }
+}
+
+/* Override SVAR Gantt component fonts to use project sans-serif */
+.wx-willow,
+.wx-willow *,
+[class^="wx-"] {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif !important;
 }

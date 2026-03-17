@@ -20,6 +20,8 @@ interface TaskTableProps {
   onAddSubtask: (parentTask: ComputedTask) => void;
   /** Fixed row height in pixels for Gantt scroll sync alignment */
   rowHeight?: number;
+  /** Fixed header height in pixels to match Gantt scale header */
+  headerHeight?: number;
   /** When false, hides edit controls for read-only view */
   isEditor?: boolean;
 }
@@ -33,6 +35,7 @@ export function TaskTable({
   onAddTask,
   onAddSubtask,
   rowHeight,
+  headerHeight,
   isEditor = false,
 }: TaskTableProps) {
   // Use caller-provided order (tree-sorted for Gantt alignment)
@@ -42,7 +45,10 @@ export function TaskTable({
     <div className="w-full">
       <table className="w-full text-left">
         <thead>
-          <tr className="border-b border-border bg-muted/50">
+          <tr
+            className="border-b border-border bg-muted/50"
+            style={headerHeight ? { height: headerHeight } : undefined}
+          >
             <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-12 text-center">
               #
             </th>
