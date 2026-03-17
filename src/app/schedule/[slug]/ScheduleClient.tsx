@@ -3,11 +3,17 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type { IApi } from '@svar-ui/react-gantt';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useProject } from '@/hooks/useProject';
 import { useSchedule } from '@/hooks/useSchedule';
 import { useAuth } from '@/hooks/useAuth';
+import { useCheckpoints } from '@/hooks/useCheckpoints';
 import { createClient } from '@/lib/supabase/client';
 import { createEditorClient } from '@/lib/supabase/editor-client';
+import {
+  computePlannedCurve,
+  computeActualProgress,
+} from '@/lib/progress/curve-calculator';
 import {
   createTask,
   updateTask,
@@ -28,6 +34,7 @@ import {
 import { TaskTable } from '@/components/task-list/TaskTable';
 import { OwnerManager } from '@/components/owners/OwnerManager';
 import { EditToggle } from '@/components/auth/EditToggle';
+import { ProgressPlot } from '@/components/progress/ProgressPlot';
 import { Button } from '@/components/ui/button';
 import type { ComputedTask, Dependency } from '@/types/scheduling';
 import { CyclicDependencyError } from '@/types/scheduling';
@@ -58,6 +65,50 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
     }
     return createClient();
   }, [isEditor, editorToken]);
+
+  // ---------------------------------------------------------------------------
+  // Progress tracking
+  // ---------------------------------------------------------------------------
+
+  const [showProgress, setShowProgress] = useState(false);
+
+  const { checkpoints, saving, saveCheckpoint } = useCheckpoints(
+    projectId,
+    isEditor,
+    editorToken
+  );
+
+  const plannedCurve = useMemo(
+    () => computePlannedCurve(schedule, project?.includeWeekends ?? false),
+    [schedule, project?.includeWeekends]
+  );
+
+  const actualProgress = useMemo(
+    () => computeActualProgress(schedule),
+    [schedule]
+  );
+
+  const totalWorkDays = useMemo(() => {
+    const parentIds = new Set(
+      schedule
+        .filter((t) => schedule.some((o) => o.parentTaskId === t.id))
+        .map((t) => t.id)
+    );
+    return schedule
+      .filter((t) => !parentIds.has(t.id))
+      .reduce((sum, t) => sum + t.durationDays, 0);
+  }, [schedule]);
+
+  const handleSaveCheckpoint = useCallback(async () => {
+    try {
+      await saveCheckpoint(totalWorkDays, actualProgress);
+      toast.success('Checkpoint saved');
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to save checkpoint'
+      );
+    }
+  }, [saveCheckpoint, totalWorkDays, actualProgress]);
 
   // ---------------------------------------------------------------------------
   // Scroll sync refs
@@ -390,8 +441,30 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowProgress((prev) => !prev)}
+            >
+              {showProgress ? (
+                <ChevronUp className="size-4 mr-1" />
+              ) : (
+                <ChevronDown className="size-4 mr-1" />
+              )}
+              Progress
+            </Button>
+
             {isEditor && (
               <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSaveCheckpoint}
+                  disabled={saving || schedule.length === 0}
+                >
+                  {saving ? 'Saving...' : 'Save Checkpoint'}
+                </Button>
+
                 <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -434,7 +507,11 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
         {/* Split-pane: TaskTable (left) | Gantt timeline (right) */}
         <div
           className="flex border border-border rounded-lg overflow-hidden"
-          style={{ height: 'calc(100vh - 120px)' }}
+          style={{
+            height: showProgress
+              ? 'calc(100vh - 420px)'
+              : 'calc(100vh - 120px)',
+          }}
         >
           {/* Left pane -- editable task table */}
           <div
@@ -482,6 +559,21 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
             />
           </div>
         </div>
+
+        {/* Collapsible progress panel */}
+        {showProgress && (
+          <div className="mt-3 border border-border rounded-lg p-4 bg-background">
+            <h2 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+              Progress Tracking
+            </h2>
+            <ProgressPlot
+              plannedCurve={plannedCurve}
+              actualProgress={actualProgress}
+              checkpoints={checkpoints}
+              totalWorkDays={totalWorkDays}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
