@@ -19,7 +19,17 @@
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cd * && npx tsc:*)",
+      "Bash(cd * && grep:*)",
+      "Bash(cd * && git add:*)",
+      "Bash(cd * && git commit:*)",
+      "Bash(cd * && git status:*)",
+      "Bash(cd * && git log:*)",
+      "Bash(cd * && git diff:*)",
+      "Bash(cd * && git tag:*)",
+      "Grep(*)"
     ]
   }
 }
