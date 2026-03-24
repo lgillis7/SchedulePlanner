@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Gantt Visualization** - Split-pane task list + Gantt chart with owner-colored bars, dependency arrows, completion indicators, and drag-and-drop dependency creation
 - [x] **Phase 3: Auth + Sharing** - Shared passcode gate for editing, open read-only view for contractors, session persistence, Supabase RLS enforcement (completed 2026-03-17)
 - [x] **Phase 4: Progress Tracking** (completed 2026-03-17) - Progress plot with desired curve, current-state indicator, manual checkpoint snapshots, and as-built curve
-- [ ] **Phase 5: Unified Gantt View** - Replace SVAR Gantt library with custom SVG bars in a single scroll container for guaranteed row alignment, unified scrolling, and correct expand/collapse
+- [x] **Phase 5: Unified Gantt View** (completed 2026-03-23) - Replace SVAR Gantt library with custom SVG bars in a single scroll container for guaranteed row alignment, unified scrolling, and correct expand/collapse
 
 ## Phase Details
 
@@ -94,8 +94,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Build custom SVG Gantt components (bars, timescale, arrows, today marker, utils)
-- [ ] 05-02-PLAN.md -- Integrate into ScheduleClient, remove SVAR, visual verification
+- [x] 05-01-PLAN.md -- Build custom SVG Gantt components (bars, timescale, arrows, today marker, utils)
+- [x] 05-02-PLAN.md -- Integrate into ScheduleClient, remove SVAR, visual verification
 
 ## Progress
 
@@ -108,4 +108,4 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5
 | 2. Gantt Visualization | 2/2 | Complete | 2026-03-16 |
 | 3. Auth + Sharing | 2/2 | Complete | 2026-03-17 |
 | 4. Progress Tracking | 2/2 | Complete | 2026-03-17 |
-| 5. Unified Gantt View | 0/2 | Planning | - |
+| 5. Unified Gantt View | 2/2 | Complete | 2026-03-23 |

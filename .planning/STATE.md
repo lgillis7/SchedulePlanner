@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-03-24T01:47:52.044Z"
+status: complete
+last_updated: "2026-03-24T01:55:00.000Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-15)
 
 **Core value:** Clearly visualize the renovation schedule -- what depends on what, who owns what, and whether we're ahead or behind
-**Current focus:** Phase 5 - Unified Gantt View (replace SVAR with custom SVG)
+**Current focus:** All milestone phases complete
 
 ## Current Position
 
 Phase: 5 of 5 (Unified Gantt View)
-Plan: 1 of 2 in current phase (plan 01 complete)
-Status: In Progress
-Last activity: 2026-03-23 - Completed 05-01: SVG Gantt rendering components
+Plan: 2 of 2 in current phase (all plans complete)
+Status: Complete
+Last activity: 2026-03-23 - Completed 05-02: Unified scroll integration and SVAR removal
 
-Progress: [█████████░] 91% (10/11 plans)
+Progress: [██████████] 100% (11/11 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 7.6min
-- Total execution time: 1.1 hours
+- Total plans completed: 11
+- Average duration: 7min
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -44,9 +44,10 @@ Progress: [█████████░] 91% (10/11 plans)
 | 02 | 2 | 18min | 9min |
 | 03 | 2 | 15min | 7.5min |
 | 04 | 2 | 10min | 5min |
+| 05 | 2 | 5min | 2.5min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (15min), 03-01 (3min), 03-02 (12min), 04-01 (2min), 04-02 (8min)
+- Last 5 plans: 03-02 (12min), 04-01 (2min), 04-02 (8min), 05-01 (2min), 05-02 (3min)
 - Trend: stable
 
 | Phase | Plan | Duration | Tasks | Files |
@@ -61,6 +62,7 @@ Progress: [█████████░] 91% (10/11 plans)
 | 04 | P01 | 2min | 2 tasks | 4 files |
 | 04 | P02 | 8min | 3 tasks | 3 files |
 | 05 | P01 | 2min | 2 tasks | 6 files |
+| 05 | P02 | 3min | 3 tasks | 6 files |
 
 *Updated after each plan completion*
 
@@ -104,6 +106,9 @@ Recent decisions affecting current work:
 - [04-02]: GlowDot SVG circle with drop-shadow filter for today's actual progress indicator
 - [04-02]: Split-pane height toggles between full and reduced to accommodate progress panel
 - [Phase 05]: Pure SVG components with no internal state -- all positioning via gantt-utils constants
+- [05-02]: Single overflow:auto container with sticky-left table eliminates all scroll-sync complexity
+- [05-02]: visibleTasks lifted from TaskTable to ScheduleClient so both table and GanttChart share identical row sets
+- [05-02]: SVAR fully removed -- clean cut, no incremental migration
 
 ### Pending Todos
 
@@ -126,5 +131,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-23
-Stopped at: Completed 05-01-PLAN.md -- SVG Gantt rendering components
+Stopped at: Completed 05-02-PLAN.md -- All milestone phases complete
 Resume file: None
