@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Gantt Visualization** - Split-pane task list + Gantt chart with owner-colored bars, dependency arrows, completion indicators, and drag-and-drop dependency creation
 - [x] **Phase 3: Auth + Sharing** - Shared passcode gate for editing, open read-only view for contractors, session persistence, Supabase RLS enforcement (completed 2026-03-17)
 - [x] **Phase 4: Progress Tracking** (completed 2026-03-17) - Progress plot with desired curve, current-state indicator, manual checkpoint snapshots, and as-built curve
+- [ ] **Phase 5: Unified Gantt View** - Replace SVAR Gantt library with custom SVG bars in a single scroll container for guaranteed row alignment, unified scrolling, and correct expand/collapse
 
 ## Phase Details
 
@@ -80,10 +81,26 @@ Plans:
 - [x] 04-01-PLAN.md -- Progress data layer: curve calculator, checkpoint type, Supabase queries, useCheckpoints hook
 - [x] 04-02-PLAN.md -- Progress plot: Recharts ProgressPlot component, collapsible panel, Save Checkpoint button
 
+### Phase 5: Unified Gantt View
+**Goal**: Table rows and Gantt bars are perfectly aligned in a single scroll container with unified vertical scrolling, correct expand/collapse, and no dependency on SVAR
+**Depends on**: Phase 4
+**Requirements**: None (architectural improvement, no new user-facing requirements)
+**Success Criteria** (what must be TRUE):
+  1. Every table row aligns pixel-perfectly with its corresponding Gantt bar at any scroll position
+  2. Vertical scrolling in either pane moves both panes in lockstep (single scroll container)
+  3. Expanding/collapsing a parent task correctly shows/hides bars and rows together with no alignment drift
+  4. Dependency arrows visually connect upstream bar ends to downstream bar starts
+  5. All existing editing features (inline edit, date pickers, owner selects, drag-to-reorder, deps) continue to work
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md -- Build custom SVG Gantt components (bars, timescale, arrows, today marker, utils)
+- [ ] 05-02-PLAN.md -- Integrate into ScheduleClient, remove SVAR, visual verification
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 > 2 > 3 > 4
+Phases execute in numeric order: 1 > 2 > 3 > 4 > 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -91,3 +108,4 @@ Phases execute in numeric order: 1 > 2 > 3 > 4
 | 2. Gantt Visualization | 2/2 | Complete | 2026-03-16 |
 | 3. Auth + Sharing | 2/2 | Complete | 2026-03-17 |
 | 4. Progress Tracking | 2/2 | Complete | 2026-03-17 |
+| 5. Unified Gantt View | 0/2 | Planning | - |
