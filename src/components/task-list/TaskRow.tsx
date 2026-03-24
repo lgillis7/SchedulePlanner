@@ -318,7 +318,7 @@ export function TaskRow({
 
   return (
     <tr
-      className={`group/row border-b border-border hover:bg-muted/50 ${isDragOver ? 'border-t-2 border-t-primary' : ''}`}
+      className={`group/row hover:bg-muted/50 ${isDragOver ? 'border-t-2 border-t-primary' : ''}`}
       style={rowHeight ? { height: rowHeight } : undefined}
       onDragOver={(e) => { e.preventDefault(); onDragOver?.(task.id); }}
       onDragEnd={() => onDragEnd?.()}
