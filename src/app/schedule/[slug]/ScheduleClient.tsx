@@ -1,8 +1,7 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import type { IApi } from '@svar-ui/react-gantt';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useProject } from '@/hooks/useProject';
 import { useSchedule } from '@/hooks/useSchedule';
@@ -25,23 +24,16 @@ import {
   addDependency,
   removeDependency,
 } from '@/lib/supabase/queries';
-import { GanttView } from '@/components/gantt/GanttView';
-import {
-  toSvarTasks,
-  toSvarLinks,
-  treeSortTasks,
-} from '@/components/gantt/gantt-adapter';
+import { GanttChart } from '@/components/gantt/GanttChart';
+import { ROW_HEIGHT, HEADER_HEIGHT } from '@/components/gantt/gantt-utils';
+import { treeSortTasks } from '@/components/gantt/gantt-adapter';
 import { TaskTable } from '@/components/task-list/TaskTable';
 import { OwnerManager } from '@/components/owners/OwnerManager';
 import { EditToggle } from '@/components/auth/EditToggle';
 import { ProgressPlot } from '@/components/progress/ProgressPlot';
 import { Button } from '@/components/ui/button';
-import type { ComputedTask, Dependency } from '@/types/scheduling';
+import type { ComputedTask } from '@/types/scheduling';
 import { CyclicDependencyError } from '@/types/scheduling';
-import { detectCycle } from '@/lib/scheduling/dependency-graph';
-
-const ROW_HEIGHT = 34;
-const SCALE_HEIGHT = 20;
 
 interface ScheduleClientProps {
   projectId: string;
@@ -111,43 +103,6 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   }, [saveCheckpoint, totalWorkDays, actualProgress]);
 
   // ---------------------------------------------------------------------------
-  // Scroll sync refs
-  // ---------------------------------------------------------------------------
-
-  const ganttApiRef = useRef<IApi | null>(null);
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-  const scrollSourceRef = useRef<'table' | 'gantt' | null>(null);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  const handleGanttInit = useCallback((api: IApi) => {
-    ganttApiRef.current = api;
-
-    // Gantt scrolls -> sync table
-    api.on('scroll-chart', (ev: { top?: number }) => {
-      if (scrollSourceRef.current === 'table') return;
-      scrollSourceRef.current = 'gantt';
-      clearTimeout(scrollTimeoutRef.current);
-      if (tableContainerRef.current && ev.top != null) {
-        tableContainerRef.current.scrollTop = ev.top;
-      }
-      scrollTimeoutRef.current = setTimeout(() => {
-        scrollSourceRef.current = null;
-      }, 100);
-    });
-  }, []);
-
-  const handleTableScroll = useCallback(() => {
-    if (scrollSourceRef.current === 'gantt') return;
-    scrollSourceRef.current = 'table';
-    clearTimeout(scrollTimeoutRef.current);
-    const top = tableContainerRef.current?.scrollTop ?? 0;
-    ganttApiRef.current?.exec('scroll-chart', { top });
-    scrollTimeoutRef.current = setTimeout(() => {
-      scrollSourceRef.current = null;
-    }, 100);
-  }, []);
-
-  // ---------------------------------------------------------------------------
   // Collapse state (shared between TaskTable and Gantt)
   // ---------------------------------------------------------------------------
 
@@ -166,7 +121,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   }, []);
 
   // ---------------------------------------------------------------------------
-  // SVAR Gantt data transforms (memoized, tree-sorted for alignment)
+  // Tree sort + visible tasks (shared between TaskTable and GanttChart)
   // ---------------------------------------------------------------------------
 
   const treeSchedule = useMemo(
@@ -174,68 +129,28 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
     [schedule]
   );
 
-  const svarTasks = useMemo(
-    () => toSvarTasks(treeSchedule, owners, collapsedIds),
-    [treeSchedule, owners, collapsedIds]
-  );
-  const svarLinks = useMemo(
-    () => toSvarLinks(dependencies),
-    [dependencies]
-  );
-
-  // ---------------------------------------------------------------------------
-  // Gantt link event handlers
-  // ---------------------------------------------------------------------------
-
-  const handleAddLink = useCallback(
-    async (sourceId: string, targetId: string) => {
-      // Pre-flight cycle check before hitting the database
-      const proposedDeps: Dependency[] = [
-        ...dependencies,
-        {
-          id: 'temp',
-          projectId,
-          upstreamTaskId: sourceId,
-          downstreamTaskId: targetId,
-          dependencyType: 'finish-to-start' as const,
-        },
-      ];
-      const cycle = detectCycle(tasks, proposedDeps);
-      if (cycle !== null) {
-        toast.error(`Circular dependency: ${cycle.join(' \u2192 ')}`);
-        return;
+  // Build set of hidden task IDs (children of collapsed ancestors)
+  const hiddenIds = useMemo(() => {
+    const hidden = new Set<string>();
+    const taskMap = new Map(treeSchedule.map(t => [t.id, t]));
+    for (const task of treeSchedule) {
+      let current = task;
+      while (current.parentTaskId) {
+        if (collapsedIds.has(current.parentTaskId)) {
+          hidden.add(task.id);
+          break;
+        }
+        const parent = taskMap.get(current.parentTaskId);
+        if (!parent) break;
+        current = parent;
       }
+    }
+    return hidden;
+  }, [treeSchedule, collapsedIds]);
 
-      try {
-        await addDependency(client, {
-          projectId,
-          upstreamTaskId: sourceId,
-          downstreamTaskId: targetId,
-        });
-        await refetch();
-        toast.success('Dependency created');
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : 'Failed to create dependency'
-        );
-      }
-    },
-    [client, projectId, tasks, dependencies, refetch]
-  );
-
-  const handleDeleteLink = useCallback(
-    async (linkId: string) => {
-      try {
-        await removeDependency(client, linkId);
-        await refetch();
-        toast.success('Dependency removed');
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : 'Failed to remove dependency'
-        );
-      }
-    },
-    [client, refetch]
+  const visibleTasks = useMemo(
+    () => treeSchedule.filter(t => !hiddenIds.has(t.id)),
+    [treeSchedule, hiddenIds]
   );
 
   // ---------------------------------------------------------------------------
@@ -340,31 +255,17 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   // ---------------------------------------------------------------------------
 
   const handleReorderTask = useCallback(
-    async (taskId: string, newIndex: number) => {
+    async (taskId: string, targetTaskId: string) => {
       try {
-        // Find the dragged task
         const draggedTask = treeSchedule.find((t) => t.id === taskId);
-        if (!draggedTask) return;
-
-        // Find the target task at the drop position
-        // We need to work with visible tasks in tree order
-        const targetTask = treeSchedule.filter((t) => {
-          // Filter to visible tasks (not hidden by collapse)
-          let current = t;
-          const taskMap = new Map(treeSchedule.map((tt) => [tt.id, tt]));
-          while (current.parentTaskId) {
-            // Collapsed check not available here, so just use full list
-            const parent = taskMap.get(current.parentTaskId);
-            if (!parent) break;
-            current = parent;
-          }
-          return true;
-        })[newIndex];
-
-        if (!targetTask) return;
+        const targetTask = treeSchedule.find((t) => t.id === targetTaskId);
+        if (!draggedTask || !targetTask) return;
 
         // Only allow reordering among siblings (same parentTaskId)
-        if (draggedTask.parentTaskId !== targetTask.parentTaskId) return;
+        if (draggedTask.parentTaskId !== targetTask.parentTaskId) {
+          toast.error('Can only reorder within the same parent group');
+          return;
+        }
 
         const parentId = draggedTask.parentTaskId;
 
@@ -496,9 +397,6 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
     );
   }
 
-  // Total scale header = 2 scales x SCALE_HEIGHT
-  const scaleHeaderHeight = 2 * SCALE_HEIGHT;
-
   return (
     <div className="min-h-screen bg-background">
       <div className="px-4 py-3">
@@ -576,31 +474,22 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
           </div>
         )}
 
-        {/* Split-pane: TaskTable (left) | Gantt timeline (right) */}
+        {/* Unified scroll container: single scrollTop controls both panes */}
         <div
-          className="flex border border-border rounded-lg overflow-hidden"
+          className="border border-border rounded-lg"
           style={{
+            overflow: 'auto',
             height: showProgress
               ? 'calc(100vh - 420px)'
               : 'calc(100vh - 120px)',
           }}
         >
-          {/* Left pane -- editable task table */}
-          <div
-            ref={tableContainerRef}
-            className="min-w-0 overflow-auto border-r border-border"
-            style={{
-              width: '55%',
-              scrollbarWidth: 'none',
-            }}
-            onScroll={handleTableScroll}
-          >
-            <style>{`
-              .gantt-table-scroll::-webkit-scrollbar { width: 0; height: auto; }
-            `}</style>
-            <div className="gantt-table-scroll">
+          <div style={{ display: 'flex', minWidth: 'fit-content' }}>
+            {/* Frozen task table -- sticky left */}
+            <div style={{ position: 'sticky', left: 0, zIndex: 10, flexShrink: 0, background: 'var(--background)' }}>
               <TaskTable
                 schedule={treeSchedule}
+                visibleTasks={visibleTasks}
                 owners={owners}
                 dependencies={dependencies}
                 onUpdate={handleUpdateTask}
@@ -608,27 +497,20 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
                 onAddTask={handleAddTask}
                 onAddSubtask={handleAddSubtask}
                 rowHeight={ROW_HEIGHT}
-                headerHeight={scaleHeaderHeight}
+                headerHeight={HEADER_HEIGHT}
                 isEditor={isEditor}
                 collapsedIds={collapsedIds}
                 onToggleCollapse={toggleCollapse}
                 onReorder={isEditor ? handleReorderTask : undefined}
               />
             </div>
-          </div>
 
-          {/* Right pane -- Gantt timeline only */}
-          <div className="min-w-0 flex flex-col" style={{ width: '45%' }}>
-            <GanttView
-              tasks={svarTasks}
-              links={svarLinks}
-              onAddLink={isEditor ? handleAddLink : undefined}
-              onDeleteLink={isEditor ? handleDeleteLink : undefined}
-              onInit={handleGanttInit}
-              showGrid={false}
-              cellHeight={ROW_HEIGHT}
-              scaleHeight={SCALE_HEIGHT}
-              isEditor={isEditor}
+            {/* SVG Gantt timeline */}
+            <GanttChart
+              visibleTasks={visibleTasks}
+              allTasks={treeSchedule}
+              owners={owners}
+              dependencies={dependencies}
             />
           </div>
         </div>

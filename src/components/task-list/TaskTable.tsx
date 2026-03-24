@@ -6,6 +6,8 @@ import type { ComputedTask, Owner, Dependency } from '@/types/scheduling';
 
 interface TaskTableProps {
   schedule: ComputedTask[];
+  /** Pre-computed visible tasks from parent (skips internal hiddenIds calculation) */
+  visibleTasks?: ComputedTask[];
   owners: Owner[];
   dependencies: Dependency[];
   onUpdate: (
@@ -29,12 +31,13 @@ interface TaskTableProps {
   collapsedIds: Set<string>;
   /** Toggle collapse state for a parent task */
   onToggleCollapse: (taskId: string) => void;
-  /** Callback when a task is reordered via drag-and-drop */
-  onReorder?: (taskId: string, newIndex: number) => void;
+  /** Callback when a task is reordered via drag-and-drop (source ID, target ID) */
+  onReorder?: (taskId: string, targetTaskId: string) => void;
 }
 
 export function TaskTable({
   schedule,
+  visibleTasks: visibleTasksProp,
   owners,
   dependencies,
   onUpdate,
@@ -60,8 +63,28 @@ export function TaskTable({
     return ids;
   }, [sortedTasks]);
 
+  // Compute hierarchical display IDs (e.g., "1", "1.1", "1.2", "2", "2.1")
+  const displayIdMap = useMemo(() => {
+    const map = new Map<string, string>();
+    const siblingCounters = new Map<string | null, number>();
+    for (const task of sortedTasks) {
+      const parentKey = task.parentTaskId ?? null;
+      const count = (siblingCounters.get(parentKey) ?? 0) + 1;
+      siblingCounters.set(parentKey, count);
+      if (task.parentTaskId) {
+        const parentDisplayId = map.get(task.parentTaskId);
+        map.set(task.id, `${parentDisplayId}.${count}`);
+      } else {
+        map.set(task.id, String(count));
+      }
+    }
+    return map;
+  }, [sortedTasks]);
+
   // Build set of hidden task IDs (children of collapsed ancestors)
+  // Skipped when visibleTasks prop is provided by parent
   const hiddenIds = useMemo(() => {
+    if (visibleTasksProp) return new Set<string>();
     const hidden = new Set<string>();
     const taskMap = new Map(sortedTasks.map((t) => [t.id, t]));
     for (const task of sortedTasks) {
@@ -77,11 +100,11 @@ export function TaskTable({
       }
     }
     return hidden;
-  }, [sortedTasks, collapsedIds]);
+  }, [sortedTasks, collapsedIds, visibleTasksProp]);
 
   const visibleTasks = useMemo(
-    () => sortedTasks.filter((t) => !hiddenIds.has(t.id)),
-    [sortedTasks, hiddenIds]
+    () => visibleTasksProp ?? sortedTasks.filter((t) => !hiddenIds.has(t.id)),
+    [visibleTasksProp, sortedTasks, hiddenIds]
   );
 
   // ---------------------------------------------------------------------------
@@ -101,19 +124,19 @@ export function TaskTable({
 
   const handleDragEnd = useCallback(() => {
     if (dragSourceId && dragOverId && dragSourceId !== dragOverId && onReorder) {
-      // Find the target index within visibleTasks
-      const targetIndex = visibleTasks.findIndex((t) => t.id === dragOverId);
-      if (targetIndex !== -1) {
-        onReorder(dragSourceId, targetIndex);
-      }
+      onReorder(dragSourceId, dragOverId);
     }
     setDragSourceId(null);
     setDragOverId(null);
-  }, [dragSourceId, dragOverId, visibleTasks, onReorder]);
+  }, [dragSourceId, dragOverId, onReorder]);
 
   // Editor columns: drag handle + # + Task + Owner + Desired Start + Duration + Req Start + End Date + Done + Deps + Actions = 11
   // Read-only columns: # + Task + Owner + Desired Start + Duration + Req Start + End Date + Done = 8
   const totalColumns = isEditor ? 11 : 8;
+
+  // Sticky column offsets: drag(32) + #(48) + Task(220)
+  const stickyIdLeft = isEditor ? 32 : 0;   // after drag handle
+  const stickyTaskLeft = stickyIdLeft + 48;  // after # column
 
   return (
     <div className="w-full">
@@ -124,12 +147,18 @@ export function TaskTable({
             style={headerHeight ? { height: headerHeight } : undefined}
           >
             {isEditor && (
-              <th className="w-8" />
+              <th className="w-8 sticky left-0 z-20 bg-muted/50" />
             )}
-            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-12 text-center">
+            <th
+              className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-12 text-center sticky z-20 bg-muted/50"
+              style={{ left: stickyIdLeft }}
+            >
               #
             </th>
-            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground min-w-[200px]">
+            <th
+              className="px-2 py-1.5 text-xs font-medium text-muted-foreground min-w-[200px] sticky z-20 bg-muted/50 border-r border-border"
+              style={{ left: stickyTaskLeft }}
+            >
               Task
             </th>
             <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
@@ -170,6 +199,9 @@ export function TaskTable({
               owners={owners}
               dependencies={dependencies}
               allTasks={sortedTasks}
+              displayIdMap={displayIdMap}
+              stickyIdLeft={stickyIdLeft}
+              stickyTaskLeft={stickyTaskLeft}
               onUpdate={onUpdate}
               onDelete={onDelete}
               onAddSubtask={onAddSubtask}
