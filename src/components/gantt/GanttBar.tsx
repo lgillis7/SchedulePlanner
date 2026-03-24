@@ -5,7 +5,6 @@ import {
   ROW_HEIGHT,
   BAR_HEIGHT,
   BAR_Y_OFFSET,
-  HEADER_HEIGHT,
 } from './gantt-utils';
 
 const DEFAULT_COLOR = '#94A3B8'; // slate-400
@@ -21,7 +20,7 @@ export function GanttBar({ task, rowIndex, rangeStart, ownerColor }: GanttBarPro
   const x = dateToX(task.effectiveStartDate, rangeStart);
   const rawWidth = dateToX(task.endDate, rangeStart) - x;
   const width = Math.max(rawWidth, DAY_WIDTH); // minimum one day
-  const y = HEADER_HEIGHT + rowIndex * ROW_HEIGHT + BAR_Y_OFFSET;
+  const y = rowIndex * ROW_HEIGHT + BAR_Y_OFFSET;
   const color = ownerColor || DEFAULT_COLOR;
 
   return (

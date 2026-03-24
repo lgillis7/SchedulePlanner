@@ -129,3 +129,15 @@
     @apply font-sans;
   }
 }
+
+/* Lock table row height so cells never expand and misalign with Gantt bars.
+   <td> ignores max-height, so we constrain via an inner wrapper. */
+.gantt-aligned-table td > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gantt-aligned-table td {
+  overflow: hidden;
+  line-height: 1.2;
+}

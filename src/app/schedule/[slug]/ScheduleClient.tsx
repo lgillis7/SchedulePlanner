@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useProject } from '@/hooks/useProject';
@@ -121,6 +121,19 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
   }, []);
 
   // ---------------------------------------------------------------------------
+  // Scroll sync: fake sticky-top for table header via transform
+  // (CSS sticky doesn't work inside overflow-x:auto containers)
+  // ---------------------------------------------------------------------------
+
+  const theadRowRef = useRef<HTMLTableRowElement>(null);
+
+  const handleContainerScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (theadRowRef.current) {
+      theadRowRef.current.style.transform = `translateY(${e.currentTarget.scrollTop}px)`;
+    }
+  }, []);
+
+  // ---------------------------------------------------------------------------
   // Tree sort + visible tasks (shared between TaskTable and GanttChart)
   // ---------------------------------------------------------------------------
 
@@ -213,7 +226,10 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
         remove: string[];
       }
     ) => {
-      await updateTask(client, taskId, updates);
+      // Only call updateTask if there are actual field updates
+      if (Object.keys(updates).length > 0) {
+        await updateTask(client, taskId, updates);
+      }
 
       // Handle dependency changes
       if (depChanges) {
@@ -411,19 +427,6 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowProgress((prev) => !prev)}
-            >
-              {showProgress ? (
-                <ChevronUp className="size-4 mr-1" />
-              ) : (
-                <ChevronDown className="size-4 mr-1" />
-              )}
-              Progress
-            </Button>
-
             {isEditor && (
               <>
                 <Button
@@ -476,17 +479,18 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
 
         {/* Unified scroll container: single scrollTop controls both panes */}
         <div
+          onScroll={handleContainerScroll}
           className="border border-border rounded-lg"
           style={{
             overflow: 'auto',
             height: showProgress
               ? 'calc(100vh - 420px)'
-              : 'calc(100vh - 120px)',
+              : 'calc(100vh - 160px)',
           }}
         >
           <div style={{ display: 'flex', minWidth: 'fit-content' }}>
-            {/* Frozen task table -- sticky left */}
-            <div style={{ position: 'sticky', left: 0, zIndex: 10, flexShrink: 0, background: 'var(--background)' }}>
+            {/* Frozen task table -- sticky left, scrollable horizontally within 50vw */}
+            <div style={{ position: 'sticky', left: 0, zIndex: 10, flexShrink: 0, background: 'var(--background)', width: '50vw', overflowX: 'auto', overflowY: 'hidden' }}>
               <TaskTable
                 schedule={treeSchedule}
                 visibleTasks={visibleTasks}
@@ -502,6 +506,7 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
                 collapsedIds={collapsedIds}
                 onToggleCollapse={toggleCollapse}
                 onReorder={isEditor ? handleReorderTask : undefined}
+                theadRowRef={theadRowRef}
               />
             </div>
 
@@ -529,6 +534,22 @@ export default function ScheduleClient({ projectId }: ScheduleClientProps) {
             />
           </div>
         )}
+
+        {/* Progress toggle at bottom */}
+        <div className="mt-2 flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowProgress((prev) => !prev)}
+          >
+            {showProgress ? (
+              <ChevronUp className="size-4 mr-1" />
+            ) : (
+              <ChevronDown className="size-4 mr-1" />
+            )}
+            Progress
+          </Button>
+        </div>
       </div>
     </div>
   );

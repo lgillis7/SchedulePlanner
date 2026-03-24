@@ -10,9 +10,9 @@ import type { ComputedTask } from '@/types/scheduling';
 
 // ── Layout constants ────────────────────────────────────────────────
 export const DAY_WIDTH = 34;
-export const ROW_HEIGHT = 34;
-export const BAR_HEIGHT = 22;
-export const BAR_Y_OFFSET = (ROW_HEIGHT - BAR_HEIGHT) / 2; // 6
+export const ROW_HEIGHT = 28;
+export const BAR_HEIGHT = 18;
+export const BAR_Y_OFFSET = (ROW_HEIGHT - BAR_HEIGHT) / 2; // 5
 export const HEADER_HEIGHT = 40; // two 20px rows: month + day
 
 // ── Date range ──────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Trash2, Plus, CalendarIcon, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
@@ -27,6 +27,12 @@ interface TaskRowProps {
   owners: Owner[];
   dependencies: Dependency[];
   allTasks: ComputedTask[];
+  /** Map of task ID -> hierarchical display ID (e.g., "1.2.1") */
+  displayIdMap: Map<string, string>;
+  /** Left offset in px for the sticky # column */
+  stickyIdLeft: number;
+  /** Left offset in px for the sticky Task column */
+  stickyTaskLeft: number;
   onUpdate: (
     taskId: string,
     updates: Record<string, unknown>,
@@ -138,6 +144,9 @@ export function TaskRow({
   owners,
   dependencies,
   allTasks,
+  displayIdMap,
+  stickyIdLeft,
+  stickyTaskLeft,
   onUpdate,
   onDelete,
   onAddSubtask,
@@ -155,17 +164,14 @@ export function TaskRow({
     ? owners.find((o) => o.id === task.ownerId)
     : null;
 
-  // Get upstream line numbers for this task
+  // Get upstream display IDs for this task
   const upstreamDeps = dependencies.filter(
     (d) => d.downstreamTaskId === task.id
   );
-  const upstreamLineNumbers = upstreamDeps
-    .map((d) => {
-      const upTask = allTasks.find((t) => t.id === d.upstreamTaskId);
-      return upTask ? upTask.sortOrder : null;
-    })
-    .filter((n): n is number => n !== null)
-    .sort((a, b) => a - b);
+  const upstreamDisplayIds = upstreamDeps
+    .map((d) => displayIdMap.get(d.upstreamTaskId) ?? null)
+    .filter((id): id is string => id !== null)
+    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   // --- Inline save handlers ---
 
@@ -222,28 +228,32 @@ export function TaskRow({
     [task.id, onUpdate]
   );
 
+  // Build reverse lookup: display ID -> task ID
+  const displayIdToTaskId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const [taskId, displayId] of displayIdMap) {
+      map.set(displayId, taskId);
+    }
+    return map;
+  }, [displayIdMap]);
+
   const saveDeps = useCallback(
     (val: string) => {
-      // Resolve line numbers to task IDs
+      // Resolve hierarchical display IDs to task IDs
       const newUpstreamIds: string[] = [];
       if (val.trim()) {
-        const lineNums = val.split(',').map((s) => s.trim()).filter(Boolean);
-        for (const ln of lineNums) {
-          const num = parseInt(ln, 10);
-          if (isNaN(num)) {
-            toast.error(`Invalid line number: "${ln}"`);
+        const ids = val.split(',').map((s) => s.trim()).filter(Boolean);
+        for (const id of ids) {
+          const taskId = displayIdToTaskId.get(id);
+          if (!taskId) {
+            toast.error(`No task with ID "${id}"`);
             return;
           }
-          const upTask = allTasks.find((t) => t.sortOrder === num);
-          if (!upTask) {
-            toast.error(`No task with line number ${num}`);
-            return;
-          }
-          if (upTask.id === task.id) {
+          if (taskId === task.id) {
             toast.error('A task cannot depend on itself');
             return;
           }
-          newUpstreamIds.push(upTask.id);
+          newUpstreamIds.push(taskId);
         }
       }
 
@@ -303,33 +313,54 @@ export function TaskRow({
         onUpdate(task.id, {}, { add: depsToAdd, remove: depsToRemove });
       }
     },
-    [task, allTasks, dependencies, upstreamDeps, onUpdate]
+    [task, allTasks, dependencies, upstreamDeps, onUpdate, displayIdToTaskId]
   );
 
   return (
     <tr
       className={`group/row border-b border-border hover:bg-muted/50 ${isDragOver ? 'border-t-2 border-t-primary' : ''}`}
-      style={rowHeight ? { height: rowHeight, maxHeight: rowHeight, overflow: 'hidden' } : undefined}
-      draggable={isEditor}
-      onDragStart={() => onDragStart?.(task.id)}
+      style={rowHeight ? { height: rowHeight } : undefined}
       onDragOver={(e) => { e.preventDefault(); onDragOver?.(task.id); }}
       onDragEnd={() => onDragEnd?.()}
     >
-      {/* Drag handle (editor only) */}
+      {/* Drag handle (editor only) — only this cell is draggable */}
       {isEditor && (
-        <td className="px-1 py-1 w-8">
+        <td
+          className="px-1 py-1 w-8 sticky left-0 z-10 bg-background group-hover/row:bg-muted/50"
+          draggable
+          onDragStart={() => onDragStart?.(task.id)}
+        >
           <GripVertical className="size-3.5 text-muted-foreground cursor-grab opacity-0 group-hover/row:opacity-100" />
         </td>
       )}
 
-      {/* Line # */}
-      <td className="px-2 py-1 text-center text-xs text-muted-foreground tabular-nums">
-        {task.sortOrder}
+      {/* Hierarchical ID */}
+      <td
+        className="px-2 py-1 text-center text-xs text-muted-foreground tabular-nums sticky z-10 bg-background group-hover/row:bg-muted/50"
+        style={{ left: stickyIdLeft }}
+      >
+        {displayIdMap.get(task.id) ?? task.sortOrder}
       </td>
 
       {/* Title with tier formatting */}
-      <td className={`px-2 py-1 ${tierIndent(task.tierDepth)}`}>
-        <div className="flex items-center gap-1">
+      <td
+        className={`px-2 py-1 ${tierIndent(task.tierDepth)} min-w-[200px] sticky z-10 bg-background group-hover/row:bg-muted/50 border-r border-border`}
+        style={{ left: stickyTaskLeft }}
+      >
+        <div className="flex items-center gap-1 overflow-hidden">
+          {isEditor && (
+            <button
+              onClick={() => {
+                if (window.confirm(`Delete "${task.title}" and all its subtasks?`)) {
+                  onDelete(task.id);
+                }
+              }}
+              className="shrink-0 size-4 flex items-center justify-center text-muted-foreground hover:text-destructive opacity-0 group-hover/row:opacity-100"
+              aria-label={`Delete ${task.title}`}
+            >
+              <Trash2 className="size-3" />
+            </button>
+          )}
           {isParent ? (
             <button
               onClick={() => onToggleCollapse?.(task.id)}
@@ -345,10 +376,10 @@ export function TaskRow({
             <EditableCell
               value={task.title}
               onSave={saveTitle}
-              className={tierStyles(task.tierDepth)}
+              className={`${tierStyles(task.tierDepth)} truncate`}
             />
           ) : (
-            <span className={tierStyles(task.tierDepth)}>{task.title}</span>
+            <span className={`${tierStyles(task.tierDepth)} truncate`} title={task.title}>{task.title}</span>
           )}
           {isEditor && task.tierDepth < 3 && (
             <Button
@@ -417,6 +448,31 @@ export function TaskRow({
           )
         )}
       </td>
+
+      {/* Dependencies - inline editable (editor only) */}
+      {isEditor && (
+        <td className="px-2 py-1 text-sm text-muted-foreground tabular-nums" style={{ maxWidth: 80 }}>
+          <div className="overflow-hidden whitespace-nowrap text-ellipsis">
+            <EditableCell
+              value={upstreamDisplayIds.length > 0 ? upstreamDisplayIds.join(', ') : ''}
+              onSave={saveDeps}
+              inputClassName="w-20"
+              className={upstreamDisplayIds.length === 0 ? 'text-muted-foreground' : ''}
+            />
+            {!upstreamDisplayIds.length && (
+              <span
+                className="cursor-pointer hover:bg-muted/80 rounded px-0.5 text-muted-foreground"
+                onClick={(e) => {
+                  const cell = e.currentTarget.previousElementSibling as HTMLElement;
+                  if (cell) cell.click();
+                }}
+              >
+                -
+              </span>
+            )}
+          </div>
+        </td>
+      )}
 
       {/* Desired Start - calendar popover (read-only for parents) */}
       <td className="px-2 py-1 text-sm whitespace-nowrap">
@@ -488,53 +544,7 @@ export function TaskRow({
         )}
       </td>
 
-      {/* Dependencies - inline editable (editor only) */}
-      {isEditor && (
-        <td className="px-2 py-1 text-sm text-muted-foreground tabular-nums">
-          <EditableCell
-            value={upstreamLineNumbers.length > 0 ? upstreamLineNumbers.join(', ') : ''}
-            onSave={saveDeps}
-            inputClassName="w-20"
-            className={upstreamLineNumbers.length === 0 ? 'text-muted-foreground' : ''}
-          />
-          {!upstreamLineNumbers.length && (
-            <span
-              className="cursor-pointer hover:bg-muted/80 rounded px-0.5 text-muted-foreground"
-              onClick={(e) => {
-                // Find the EditableCell and trigger click on it
-                const cell = e.currentTarget.previousElementSibling as HTMLElement;
-                if (cell) cell.click();
-              }}
-            >
-              -
-            </span>
-          )}
-        </td>
-      )}
 
-      {/* Actions (editor only) */}
-      {isEditor && (
-        <td className="px-2 py-1">
-          <div className="flex items-center gap-0.5">
-            <Button
-              variant="destructive"
-              size="icon-xs"
-              onClick={() => {
-                if (
-                  window.confirm(
-                    `Delete "${task.title}" and all its subtasks?`
-                  )
-                ) {
-                  onDelete(task.id);
-                }
-              }}
-              aria-label={`Delete ${task.title}`}
-            >
-              <Trash2 />
-            </Button>
-          </div>
-        </td>
-      )}
     </tr>
   );
 }

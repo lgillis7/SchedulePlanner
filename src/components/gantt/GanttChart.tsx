@@ -46,7 +46,6 @@ export function GanttChart({
 
   const svgWidth = range.totalDays * DAY_WIDTH;
   const bodyHeight = visibleTasks.length * ROW_HEIGHT;
-  const totalHeight = HEADER_HEIGHT + bodyHeight;
 
   // Weekend shading columns
   const weekendRects = useMemo(() => {
@@ -58,7 +57,7 @@ export function GanttChart({
         <rect
           key={`weekend-${i}`}
           x={i * DAY_WIDTH}
-          y={HEADER_HEIGHT}
+          y={0}
           width={DAY_WIDTH}
           height={bodyHeight}
           fill="var(--muted)"
@@ -84,37 +83,55 @@ export function GanttChart({
           <GanttDependencyArrow
             key={dep.id}
             sourceEndX={dateToX(srcTask.endDate, range.startDate)}
-            sourceY={HEADER_HEIGHT + srcIdx * ROW_HEIGHT + BAR_Y_OFFSET}
+            sourceY={srcIdx * ROW_HEIGHT + BAR_Y_OFFSET}
             targetStartX={dateToX(tgtTask.effectiveStartDate, range.startDate)}
-            targetY={HEADER_HEIGHT + tgtIdx * ROW_HEIGHT + BAR_Y_OFFSET}
+            targetY={tgtIdx * ROW_HEIGHT + BAR_Y_OFFSET}
           />
         );
       });
   }, [dependencies, taskIndexMap, visibleTasks, range]);
 
   return (
-    <svg
-      width={svgWidth}
-      height={totalHeight}
-      style={{ flexShrink: 0, display: 'block' }}
-    >
-      <GanttTimescale range={range} />
-      {weekendRects}
-      {visibleTasks.map((task, idx) => (
-        <GanttBar
-          key={task.id}
-          task={task}
-          rowIndex={idx}
-          rangeStart={range.startDate}
-          ownerColor={
-            task.ownerId
-              ? (ownerMap.get(task.ownerId)?.color ?? '#94A3B8')
-              : '#94A3B8'
-          }
-        />
-      ))}
-      {arrows}
-      <GanttTodayMarker rangeStart={range.startDate} totalHeight={totalHeight} />
-    </svg>
+    <div style={{ flexShrink: 0 }}>
+      {/* Sticky timescale header */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 5, background: 'var(--background)' }}>
+        <svg width={svgWidth} height={HEADER_HEIGHT} style={{ display: 'block' }}>
+          <GanttTimescale range={range} />
+        </svg>
+      </div>
+
+      {/* Body: row lines, weekend shading, bars, arrows, today marker */}
+      <svg width={svgWidth} height={bodyHeight} style={{ display: 'block' }}>
+        {/* Faint horizontal row dividers */}
+        {visibleTasks.map((_, idx) => (
+          <line
+            key={`row-line-${idx}`}
+            x1={0}
+            y1={(idx + 1) * ROW_HEIGHT}
+            x2={svgWidth}
+            y2={(idx + 1) * ROW_HEIGHT}
+            stroke="var(--border)"
+            strokeWidth={0.5}
+            opacity={0.5}
+          />
+        ))}
+        {weekendRects}
+        {visibleTasks.map((task, idx) => (
+          <GanttBar
+            key={task.id}
+            task={task}
+            rowIndex={idx}
+            rangeStart={range.startDate}
+            ownerColor={
+              task.ownerId
+                ? (ownerMap.get(task.ownerId)?.color ?? '#94A3B8')
+                : '#94A3B8'
+            }
+          />
+        ))}
+        {arrows}
+        <GanttTodayMarker rangeStart={range.startDate} totalHeight={bodyHeight} />
+      </svg>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { getProjectWithData } from '@/lib/supabase/queries';
 import type { Project, RawTask, Dependency, Owner } from '@/types/scheduling';
@@ -12,10 +12,14 @@ export function useProject(projectId: string) {
   const [owners, setOwners] = useState<Owner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const hasFetched = useRef(false);
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
+      // Only show full loading state on initial fetch
+      if (!hasFetched.current) {
+        setLoading(true);
+      }
       setError(null);
       const client = createClient();
       const data = await getProjectWithData(client, projectId);
@@ -23,6 +27,7 @@ export function useProject(projectId: string) {
       setTasks(data.tasks);
       setDependencies(data.dependencies);
       setOwners(data.owners);
+      hasFetched.current = true;
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
     } finally {

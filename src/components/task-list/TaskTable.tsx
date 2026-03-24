@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type RefObject } from 'react';
 import { TaskRow } from './TaskRow';
 import type { ComputedTask, Owner, Dependency } from '@/types/scheduling';
 
@@ -33,6 +33,8 @@ interface TaskTableProps {
   onToggleCollapse: (taskId: string) => void;
   /** Callback when a task is reordered via drag-and-drop (source ID, target ID) */
   onReorder?: (taskId: string, targetTaskId: string) => void;
+  /** Ref for the thead row — parent uses this to fake sticky-top via transform */
+  theadRowRef?: RefObject<HTMLTableRowElement | null>;
 }
 
 export function TaskTable({
@@ -50,6 +52,7 @@ export function TaskTable({
   collapsedIds,
   onToggleCollapse,
   onReorder,
+  theadRowRef,
 }: TaskTableProps) {
   // Use caller-provided order (tree-sorted for Gantt alignment)
   const sortedTasks = schedule;
@@ -130,44 +133,55 @@ export function TaskTable({
     setDragOverId(null);
   }, [dragSourceId, dragOverId, onReorder]);
 
-  // Editor columns: drag handle + # + Task + Owner + Desired Start + Duration + Req Start + End Date + Done + Deps + Actions = 11
+  // Editor columns: drag handle + # + Task + Owner + Deps + Desired Start + Duration + Req Start + End Date + Done = 10
   // Read-only columns: # + Task + Owner + Desired Start + Duration + Req Start + End Date + Done = 8
-  const totalColumns = isEditor ? 11 : 8;
+  const totalColumns = isEditor ? 10 : 8;
 
-  // Sticky column offsets: drag(32) + #(48) + Task(220)
+  // Sticky column offsets: drag(32) + #(48) + Task(200)
   const stickyIdLeft = isEditor ? 32 : 0;   // after drag handle
   const stickyTaskLeft = stickyIdLeft + 48;  // after # column
 
   return (
     <div className="w-full">
-      <table className="w-full text-left border-collapse gantt-aligned-table">
+      <table className="text-left border-collapse gantt-aligned-table" style={{ width: 'auto', minWidth: '100%' }}>
+        <colgroup>
+          {isEditor && <col style={{ width: 32 }} />}
+          <col style={{ width: 48 }} />
+          <col style={{ width: 200 }} />
+        </colgroup>
         <thead>
           <tr
-            className="border-b border-border bg-muted/50"
-            style={headerHeight ? { height: headerHeight } : undefined}
+            ref={theadRowRef}
+            className="border-b border-border bg-background"
+            style={{ ...(headerHeight ? { height: headerHeight } : {}), position: 'relative', zIndex: 20, willChange: 'transform' }}
           >
             {isEditor && (
-              <th className="w-8 sticky left-0 z-20 bg-muted/50" />
+              <th className="w-8 sticky left-0 z-30 bg-background" />
             )}
             <th
-              className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-12 text-center sticky z-20 bg-muted/50"
+              className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-12 text-center sticky z-30 bg-background"
               style={{ left: stickyIdLeft }}
             >
               #
             </th>
             <th
-              className="px-2 py-1.5 text-xs font-medium text-muted-foreground min-w-[200px] sticky z-20 bg-muted/50 border-r border-border"
+              className="px-2 py-1.5 text-xs font-medium text-muted-foreground min-w-[200px] sticky z-30 bg-background border-r border-border"
               style={{ left: stickyTaskLeft }}
             >
               Task
             </th>
-            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
               Owner
             </th>
+            {isEditor && (
+              <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap" style={{ maxWidth: 80 }}>
+                Deps
+              </th>
+            )}
             <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
               Desired Start
             </th>
-            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground text-center">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground text-center whitespace-nowrap">
               Duration
             </th>
             <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
@@ -176,19 +190,9 @@ export function TaskTable({
             <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap">
               End Date
             </th>
-            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground text-center">
+            <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground text-center whitespace-nowrap">
               Done
             </th>
-            {isEditor && (
-              <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                Deps
-              </th>
-            )}
-            {isEditor && (
-              <th className="px-2 py-1.5 text-xs font-medium text-muted-foreground w-20">
-                Actions
-              </th>
-            )}
           </tr>
         </thead>
         <tbody>
